@@ -14,3 +14,6 @@ __pycache__/
 *.out
 
 /vendor
+
+*.iso
+/*.ign

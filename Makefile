@@ -144,6 +144,7 @@ deploy-test:
 	&& $(MAKE) update-minikube deploy-all
 
 deploy-onprem:
+	sh hack/startup_script.sh
 	podman pod create --name assisted-installer -p 5432,8000,8090,8080
 	podman volume create s3-volume
 	podman run -dt --pod assisted-installer --env-file onprem-environment -v s3-volume:/mnt/data:rw --name s3 scality/s3server:latest
