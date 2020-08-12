@@ -5,131 +5,122 @@ passwd:
     - name: core
       password_hash: "$6$MWO4bibU8TIWG0XV$Hiuj40lWW7pHiwJmXA8MehuBhdxSswLgvGxEh8ByEzeX2D1dk87JILVUYS4JQOP45bxHRegAB9Fs/SWfszXa5."
       ssh_authorized_keys:
-        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDO5pVc9tjDntlP8/X1BYnicN3BWxMd0HmB2T1Mt1eyOKBWXiuD93H33KCP8mA34b5U/nZYCGeQU4lZKCFVj41tYoopkqijqg/919WMXTCmxj9tq8Ub24nfZRX9fkIvyKDEqPAwLKLejKzotuA4lJmVa0PxRtylw9SMxJoxd4xtQRyaZRDF18GgHxT27L4/1ZUMJmS8cKFtf4FrYhIB7hT1uwYixAp3gKDvo+an8dgRHxmzYxRjvvkv3ilvU3B/FKuowpsVTRBIFXqB4FEsg3YdygJo/OFudwHzfPuIwaUm2P+x234nk+pfmj02ek8ceonaB6SptWriQ3lntgNqWz5gDEC3/rw+HwAS3fUqJDqmRamXvsfw8OXTYV8lisvIQ76UzGxLYIaMLfkeB+eSuiqBY82ydL2D4kJNltoLBdLXPKjqgXzfMrSQvByo08lf+kTZ8v31odGOxkLKD+5Af/eVMc0Js44znOuMKD7VHF1xEiSg7+ob2ffe3Q8k3CE3u1k= rwsu@t490s"
-      groups: [ sudo ]
+        - "replace-me"
+      groups: [sudo]
 systemd:
-    units:
-        - name: assisted-service-pod.service
-          enabled: true
-          contents: |
-            [Unit]
-            After=NetworkManager.service
-          
-            [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
-            ExecStart=podman pod create --name assisted-installer -p 5432,8000,8090,8080
-          
-            [Install]
-            WantedBy=multi-user.target
-        - name: assisted-service-db.service
-          enabled: true
-          contents: |
-            [Unit]
-            After=assisted-service-pod.service
-            
-            [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
-            ExecStartPre=podman pull docker.io/centos/postgresql-12-centos7
-            ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --name db docker.io/centos/postgresql-12-centos7
-          
-            [Install]
-            WantedBy=multi-user.target
-        - name: assisted-service-s3.service
-          enabled: true
-          contents: |
-            [Unit]
-            After=assisted-service-pod.service
-          
-            [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
-            ExecStartPre=podman pull docker.io/scality/s3server:latest
-            ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --mount type=tmpfs,destination=/mnt/data --name s3 docker.io/scality/s3server:latest
-          
-            [Install]
-            WantedBy=multi-user.target
-        - name: assisted-service-installer.service
-          enabled: true
-          contents: |
-            [Unit]
-            After=assisted-service-pod.service
-          
-            [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
-            ExecStartPre=podman pull quay.io/rwsu/assisted-service:test
-            ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --restart always --name installer quay.io/rwsu/assisted-service:test
-          
-            [Install]
-            WantedBy=multi-user.target
-        - name: assisted-service-ui.service
-          enabled: true
-          contents: |
-            [Unit]
-            After=assisted-service-pod.service
-          
-            [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
-            ExecStartPre=podman pull quay.io/ocpmetal/ocp-metal-ui:latest
-            ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment -v /etc/onprem/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest
-          
-            [Install]
-            WantedBy=multi-user.target
+  units:
+    - name: assisted-service-pod.service
+      enabled: true
+      contents: |
+        [Unit]
+        After=network-online.target
+
+        [Service]
+        Type=forking
+        Restart=no
+        ExecStart=podman pod create --name assisted-installer -p 5432,8000,8090,8080
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: assisted-service-db.service
+      enabled: true
+      contents: |
+        [Unit]
+        After=assisted-service-pod.service
+
+        [Service]
+        Type=forking
+        Restart=no
+        ExecStartPre=podman pull docker.io/centos/postgresql-12-centos7
+        ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --name db docker.io/centos/postgresql-12-centos7
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: assisted-service-s3.service
+      enabled: true
+      contents: |
+        [Unit]
+        After=assisted-service-pod.service
+
+        [Service]
+        Type=forking
+        Restart=no
+        ExecStartPre=podman pull docker.io/scality/s3server:latest
+        ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --mount type=tmpfs,destination=/mnt/data --name s3 docker.io/scality/s3server:latest
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: assisted-service-installer.service
+      enabled: true
+      contents: |
+        [Unit]
+        After=assisted-service-db.service
+        After=assisted-service-s3.service
+
+        [Service]
+        Type=forking
+        Restart=no
+        ExecStartPre=podman pull quay.io/rwsu/assisted-service:test
+        ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --restart always --name installer quay.io/rwsu/assisted-service:test
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: assisted-service-ui.service
+      enabled: true
+      contents: |
+        [Unit]
+        After=assisted-service-installer.service
+
+        [Service]
+        Type=forking
+        Restart=no
+        ExecStartPre=podman pull quay.io/ocpmetal/ocp-metal-ui:latest
+        ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment -v /etc/onprem/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest
+
+        [Install]
+        WantedBy=multi-user.target
 storage:
-    files:
-        - path: /etc/onprem/environment
-          mode: 0644
-          contents:
-            inline: |
-                S3DATAPATH=/mnt/data
-                S3METADATAPATH=/mnt/data
-                S3_ENDPOINT_URL=http://127.0.0.1:8000
-                S3_REGION=us-east-1
-                S3_BUCKET=test
-                AWS_ACCESS_KEY_ID=accessKey1
-                AWS_SECRET_ACCESS_KEY=verySecretKey1
-                POSTGRESQL_DATABASE=installer
-                POSTGRESQL_PASSWORD=admin
-                POSTGRESQL_USER=admin
-                DB_HOST=127.0.0.1
-                DB_PORT=5432
-                DB_USER=admin
-                DB_PASS=admin
-                DB_NAME=installer
-                SERVICE_BASE_URL=http://127.0.0.1:8080
-                DEPLOY_TARGET=onprem
-                CREATE_S3_BUCKET=true
-        - path: /etc/onprem/nginx.conf
-          mode: 0644
-          contents:
-            inline: |
-                server {
-                    listen 8080;
-                    server_name _;
-                    root /app;
-                    index index.html;
-                    location /api {
-                        proxy_pass http://localhost:8090;
-                        proxy_http_version 1.1;
-                        proxy_set_header Upgrade $http_upgrade;
-                        proxy_set_header Connection 'upgrade';
-                        proxy_set_header Host $host;
-                        proxy_cache_bypass $http_upgrade;
-                    }
-                    location / {
-                        try_files $uri /index.html;
-                    }
-                }
+  files:
+    - path: /etc/onprem/environment
+      mode: 0644
+      contents:
+        inline: |
+          S3DATAPATH=/mnt/data
+          S3METADATAPATH=/mnt/data
+          S3_ENDPOINT_URL=http://127.0.0.1:8000
+          S3_REGION=us-east-1
+          S3_BUCKET=test
+          AWS_ACCESS_KEY_ID=accessKey1
+          AWS_SECRET_ACCESS_KEY=verySecretKey1
+          POSTGRESQL_DATABASE=installer
+          POSTGRESQL_PASSWORD=admin
+          POSTGRESQL_USER=admin
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_USER=admin
+          DB_PASS=admin
+          DB_NAME=installer
+          SERVICE_BASE_URL=http://192.168.122.5:8080
+          DEPLOY_TARGET=onprem
+          CREATE_S3_BUCKET=true
+    - path: /etc/onprem/nginx.conf
+      mode: 0644
+      contents:
+        inline: |
+          server {
+              listen 8080;
+              server_name _;
+              root /app;
+              index index.html;
+              location /api {
+                  proxy_pass http://localhost:8090;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+              location / {
+                  try_files $uri /index.html;
+              }
+          }
