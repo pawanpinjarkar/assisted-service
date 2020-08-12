@@ -13,13 +13,11 @@ systemd:
           enabled: true
           contents: |
             [Unit]
-            After=NetworkManager.service
+            After=network-online.target
           
             [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
+            Type=forking
+            Restart=no
             ExecStart=podman pod create --name assisted-installer -p 5432,8000,8090,8080
           
             [Install]
@@ -31,10 +29,8 @@ systemd:
             After=assisted-service-pod.service
             
             [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
+            Type=forking
+            Restart=no
             ExecStartPre=podman pull docker.io/centos/postgresql-12-centos7
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --name db docker.io/centos/postgresql-12-centos7
           
@@ -47,10 +43,8 @@ systemd:
             After=assisted-service-pod.service
           
             [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
+            Type=forking
+            Restart=no
             ExecStartPre=podman pull docker.io/scality/s3server:latest
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --mount type=tmpfs,destination=/mnt/data --name s3 docker.io/scality/s3server:latest
           
@@ -60,13 +54,12 @@ systemd:
           enabled: true
           contents: |
             [Unit]
-            After=assisted-service-pod.service
+            After=assisted-service-db.service
+            After=assisted-service-s3.service
           
             [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
+            Type=forking
+            Restart=no
             ExecStartPre=podman pull quay.io/rwsu/assisted-service:test
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment --restart always --name installer quay.io/rwsu/assisted-service:test
           
@@ -76,13 +69,11 @@ systemd:
           enabled: true
           contents: |
             [Unit]
-            After=assisted-service-pod.service
+            After=assisted-service-installer.service
           
             [Service]
-            Type=simple
-            Restart=on-failure
-            RestartSec=3
-            StartLimitIntervalSec=0
+            Type=forking
+            Restart=no
             ExecStartPre=podman pull quay.io/ocpmetal/ocp-metal-ui:latest
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/onprem/environment -v /etc/onprem/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest
           
@@ -109,7 +100,7 @@ storage:
                 DB_USER=admin
                 DB_PASS=admin
                 DB_NAME=installer
-                SERVICE_BASE_URL=http://127.0.0.1:8080
+                SERVICE_BASE_URL=http://192.168.122.5:8080
                 DEPLOY_TARGET=onprem
                 CREATE_S3_BUCKET=true
         - path: /etc/onprem/nginx.conf
