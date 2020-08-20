@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/openshift/assisted-service/pkg/auth"
+	"github.com/vincent-petithory/dataurl"
 
 	"github.com/openshift/assisted-service/internal/identity"
 
@@ -111,7 +113,14 @@ const ignitionConfigFormat = `{
       "path": "/etc/motd",
       "mode": 644,
       "contents": { "source": "data:,{{.AGENT_MOTD}}" }
-    }]
+	},
+	{
+	"filesystem": "root",
+	"path": "/etc/hosts",
+	"mode": 420,
+	"append": true,
+	"contents": { "source": "{{.ASSISTED_INSTALLER_IPS}}" }
+	}]
   }
 }`
 
@@ -205,15 +214,16 @@ func (b *bareMetalInventory) formatIgnitionFile(cluster *common.Cluster, params 
 	}
 
 	var ignitionParams = map[string]string{
-		"userSshKey":      b.getUserSshKey(params),
-		"AgentDockerImg":  b.AgentDockerImg,
-		"ServiceBaseURL":  strings.TrimSpace(b.ServiceBaseURL),
-		"clusterId":       cluster.ID.String(),
-		"PullSecretToken": r.AuthRaw,
-		"AGENT_MOTD":      url.PathEscape(agentMessageOfTheDay),
-		"HTTPProxy":       cluster.HTTPProxy,
-		"HTTPSProxy":      cluster.HTTPSProxy,
-		"NoProxy":         cluster.NoProxy,
+		"userSshKey":             b.getUserSshKey(params),
+		"AgentDockerImg":         b.AgentDockerImg,
+		"ServiceBaseURL":         strings.TrimSpace(b.ServiceBaseURL),
+		"clusterId":              cluster.ID.String(),
+		"PullSecretToken":        r.AuthRaw,
+		"AGENT_MOTD":             url.PathEscape(agentMessageOfTheDay),
+		"HTTPProxy":              cluster.HTTPProxy,
+		"HTTPSProxy":             cluster.HTTPSProxy,
+		"NoProxy":                cluster.NoProxy,
+		"ASSISTED_INSTALLER_IPS": dataurl.EncodeBytes(b.getIPs()),
 	}
 	tmpl, err := template.New("ignitionConfig").Parse(ignitionConfigFormat)
 	if err != nil {
@@ -237,6 +247,15 @@ func (b *bareMetalInventory) getUserSshKey(params installer.GenerateClusterISOPa
 		"sshAuthorizedKeys": [
 		"%s"],
 		"groups": [ "sudo" ]}`, sshKey)
+}
+
+func (b *bareMetalInventory) getIPs() []byte {
+	ipArr := strings.Split(strings.TrimSpace(os.Getenv("ALL_IPS")), " ")
+	ips := ""
+	for i := 0; i < len(ipArr); i++ {
+		ips = ips + fmt.Sprintf(ipArr[i]+" assisted-api.local.openshift.io\n")
+	}
+	return []byte(ips)
 }
 
 func (b *bareMetalInventory) RegisterCluster(ctx context.Context, params installer.RegisterClusterParams) middleware.Responder {
