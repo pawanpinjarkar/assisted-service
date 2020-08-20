@@ -4,7 +4,7 @@ passwd:
   users:
     - name: core
       ssh_authorized_keys:
-        - "replace-ssh-key"
+        - "replace-with-your-ssh-public-key"
       groups: [ sudo ]
 systemd:
     units:
@@ -32,6 +32,7 @@ systemd:
             Restart=no
             ExecStartPre=podman pull --authfile /etc/assisted-service/auth.json rhel8/postgresql-12:latest
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --name db rhel8/postgresql-12:latest
+            TimeoutStartSec=300
           
             [Install]
             WantedBy=multi-user.target
@@ -46,6 +47,7 @@ systemd:
             Restart=no
             ExecStartPre=podman pull docker.io/scality/s3server:latest
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --mount type=tmpfs,destination=/mnt/data --name s3 docker.io/scality/s3server:latest
+            TimeoutStartSec=300
           
             [Install]
             WantedBy=multi-user.target
@@ -61,6 +63,7 @@ systemd:
             Restart=no
             ExecStartPre=podman pull quay.io/rwsu/assisted-service:test
             ExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --restart always --name installer quay.io/rwsu/assisted-service:test
+            TimeoutStartSec=300
           
             [Install]
             WantedBy=multi-user.target
@@ -74,7 +77,8 @@ systemd:
             Type=forking
             Restart=no
             ExecStartPre=podman pull quay.io/ocpmetal/ocp-metal-ui:latest
-            ExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment -v /etc/onprem/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest
+            ExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment -v /etc/assisted-service/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest
+            TimeoutStartSec=300
           
             [Install]
             WantedBy=multi-user.target
@@ -126,6 +130,6 @@ storage:
         - path: /etc/assisted-service/auth.conf
           mode: 0644
           contents:
-            inline: "data:;base64,replace-pull-secret"
+            inline: "data:;base64,replace-with-your-base64-encoded-pull-secret"
               
         

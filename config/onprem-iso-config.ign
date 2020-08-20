@@ -10,7 +10,7 @@
         ],
         "name": "core",
         "sshAuthorizedKeys": [
-          "replace-ssh-key"
+          "replace-with-your-ssh-public-key"
         ]
       }
     ]
@@ -51,22 +51,22 @@
         "name": "assisted-service-pod.service"
       },
       {
-        "contents": "[Unit]\nAfter=assisted-service-pod.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull --authfile /etc/assisted-service/auth.json rhel8/postgresql-12:latest\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --name db rhel8/postgresql-12:latest\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nAfter=assisted-service-pod.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull --authfile /etc/assisted-service/auth.json rhel8/postgresql-12:latest\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --name db rhel8/postgresql-12:latest\nTimeoutStartSec=300\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "assisted-service-db.service"
       },
       {
-        "contents": "[Unit]\nAfter=assisted-service-pod.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull docker.io/scality/s3server:latest\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --mount type=tmpfs,destination=/mnt/data --name s3 docker.io/scality/s3server:latest\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nAfter=assisted-service-pod.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull docker.io/scality/s3server:latest\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --mount type=tmpfs,destination=/mnt/data --name s3 docker.io/scality/s3server:latest\nTimeoutStartSec=300\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "assisted-service-s3.service"
       },
       {
-        "contents": "[Unit]\nAfter=assisted-service-db.service\nAfter=assisted-service-s3.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull quay.io/rwsu/assisted-service:test\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --restart always --name installer quay.io/rwsu/assisted-service:test\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nAfter=assisted-service-db.service\nAfter=assisted-service-s3.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull quay.io/rwsu/assisted-service:test\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment --restart always --name installer quay.io/rwsu/assisted-service:test\nTimeoutStartSec=300\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "assisted-service-installer.service"
       },
       {
-        "contents": "[Unit]\nAfter=assisted-service-installer.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull quay.io/ocpmetal/ocp-metal-ui:latest\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment -v /etc/onprem/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nAfter=assisted-service-installer.service\n\n[Service]\nType=forking\nRestart=no\nExecStartPre=podman pull quay.io/ocpmetal/ocp-metal-ui:latest\nExecStart=podman run -dt --pod assisted-installer --env-file /etc/assisted-service/environment -v /etc/assisted-service/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/nginx.conf:z --name ui quay.io/ocpmetal/ocp-metal-ui:latest\nTimeoutStartSec=300\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "assisted-service-ui.service"
       }

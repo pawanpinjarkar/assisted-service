@@ -18,8 +18,8 @@ wget https://raw.githubusercontent.com/openshift/assisted-service/master/config/
 export SSH_PUBLIC_KEY=$(cat ~/.ssh/id_rsa.pub)
 export PULL_SECRET_BASE64=$(base64 -w 0 auth.json) 
 
-sed -i 's#replace-ssh-key#'"${SSH_PUBLIC_KEY}"'#' onprem-iso-config.ign
-sed -i 's#replace-pull-secret#'"${PULL_SECRET_BASE64}"'#' onprem-iso-config.ign
+sed -i 's#replace-with-your-ssh-public-key#'"${SSH_PUBLIC_KEY}"'#' onprem-iso-config.ign
+sed -i 's#replace-with-your-base64-encoded-pull-secret#'"${PULL_SECRET_BASE64}"'#' onprem-iso-config.ign
 ````
 
 ### Download the base RHCOS live ISO
@@ -42,7 +42,7 @@ create the assisted-service live ISO.
 podman run --rm --privileged  -v /dev:/dev -v /run/udev:/run/udev -v .:/data  quay.io/coreos/coreos-installer:release iso embed -c /data/onprem-iso-config.ign -o /data/assisted-service.iso /data/livecd.iso
 ````
 
-The live ISO, assisted-service.iso, can then be used to deploy the installer. The live ISO storage system is emphemeral and its size depends on the amount of memory installed on the host. A minimum of 10GB of memory is required to deploy the installer, generate a single discovery ISO, and install a OCP cluster.
+The live ISO, **assisted-service.iso** (not livecd.iso), can then be used to deploy the installer. The live ISO storage system is emphemeral and its size depends on the amount of memory installed on the host. A minimum of 10GB of memory is required to deploy the installer, generate a single discovery ISO, and install an OCP cluster.
 
 After the live ISO boots, the UI should be accessible from the a browser at
 
