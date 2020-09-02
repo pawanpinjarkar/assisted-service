@@ -17,6 +17,7 @@ import (
 
 	"github.com/openshift/assisted-service/internal/hostutil"
 
+	ign_3_1 "github.com/coreos/ignition/v2/config/v3_1"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -382,6 +383,17 @@ var _ = Describe("IgnitionParameters", func() {
 
 			Expect(err).Should(BeNil())
 			Expect(text).Should(ContainSubstring(`"proxy": { "httpProxy": "http://10.10.1.1:3128", "noProxy": ["quay.io"] }`))
+		})
+
+		It("produces a valid ignition v3.1 spec", func() {
+			text, err := bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
+				ImageCreateParams: &models.ImageCreateParams{},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			config, report, err := ign_3_1.Parse([]byte(text))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(report.IsFatal()).To(BeFalse())
+			Expect(config.Ignition.Version).To(Equal("3.1.0"))
 		})
 	}
 
