@@ -65,6 +65,9 @@ type Cluster struct {
 	// Format: uuid
 	ID *strfmt.UUID `json:"id" gorm:"primary_key"`
 
+	// Json formatted string containing the user overrides for the initial ignition config
+	IgnitionConfigOverrides string `json:"ignition_config_overrides,omitempty"`
+
 	// ignition generator version
 	IgnitionGeneratorVersion string `json:"ignition_generator_version,omitempty"`
 

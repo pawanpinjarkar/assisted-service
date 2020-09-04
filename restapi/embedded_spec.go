@@ -2614,6 +2614,11 @@ func init() {
           "format": "uuid",
           "x-go-custom-tag": "gorm:\"primary_key\""
         },
+        "ignition_config_overrides": {
+          "description": "Json formatted string containing the user overrides for the initial ignition config",
+          "type": "string",
+          "example": "{\"storage\": {\"files\": [{\"path\": \"/tmp/example\", \"contents\": {\"source\": \"data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj\"}}]}}"
+        },
         "ignition_generator_version": {
           "type": "string"
         },
@@ -6557,6 +6562,11 @@ func init() {
           "type": "string",
           "format": "uuid",
           "x-go-custom-tag": "gorm:\"primary_key\""
+        },
+        "ignition_config_overrides": {
+          "description": "Json formatted string containing the user overrides for the initial ignition config",
+          "type": "string",
+          "example": "{\"storage\": {\"files\": [{\"path\": \"/tmp/example\", \"contents\": {\"source\": \"data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj\"}}]}}"
         },
         "ignition_generator_version": {
           "type": "string"
