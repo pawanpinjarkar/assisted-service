@@ -2826,6 +2826,77 @@ var _ = Describe("UpdateClusterInstallConfig", func() {
 	})
 })
 
+var _ = Describe("UpdateClusterIgnitionConfig", func() {
+	var (
+		bm        *bareMetalInventory
+		cfg       Config
+		db        *gorm.DB
+		ctx       = context.Background()
+		clusterID strfmt.UUID
+		c         common.Cluster
+		dbName    = "update_cluster_ignition_config"
+	)
+
+	BeforeEach(func() {
+		db = common.PrepareTestDB(dbName)
+		clusterID = strfmt.UUID(uuid.New().String())
+		bm = NewBareMetalInventory(db, getTestLog(), nil, nil, cfg, nil, nil, nil, nil, getTestAuthHandler())
+		c = common.Cluster{Cluster: models.Cluster{ID: &clusterID}}
+		err := db.Create(&c).Error
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	AfterEach(func() {
+		common.DeleteTestDB(db, dbName)
+	})
+
+	It("saves the given string to the cluster", func() {
+		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
+		params := installer.UpdateClusterIgnitionConfigParams{
+			ClusterID:            clusterID,
+			IgnitionConfigParams: override,
+		}
+		response := bm.UpdateClusterIgnitionConfig(ctx, params)
+		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigCreated{}))
+
+		var updated common.Cluster
+		err := db.First(&updated, "id = ?", clusterID).Error
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(updated.IgnitionConfigOverrides).To(Equal(override))
+	})
+
+	It("returns not found with a non-existant cluster", func() {
+		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
+		params := installer.UpdateClusterIgnitionConfigParams{
+			ClusterID:            strfmt.UUID(uuid.New().String()),
+			IgnitionConfigParams: override,
+		}
+		response := bm.UpdateClusterIgnitionConfig(ctx, params)
+		verifyApiError(response, http.StatusNotFound)
+	})
+
+	It("returns bad request when provided invalid json", func() {
+		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}}}`
+		params := installer.UpdateClusterIgnitionConfigParams{
+			ClusterID:            clusterID,
+			IgnitionConfigParams: override,
+		}
+		response := bm.UpdateClusterIgnitionConfig(ctx, params)
+		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigBadRequest{}))
+	})
+
+	It("returns bad request when provided invalid options", func() {
+		// Missing the version
+		override := `{"storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
+		params := installer.UpdateClusterIgnitionConfigParams{
+			ClusterID:            clusterID,
+			IgnitionConfigParams: override,
+		}
+		response := bm.UpdateClusterIgnitionConfig(ctx, params)
+		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigBadRequest{}))
+	})
+})
+
 func verifyApiError(responder middleware.Responder, expectedHttpStatus int32) {
 	ExpectWithOffset(1, responder).To(BeAssignableToTypeOf(common.NewApiError(expectedHttpStatus, nil)))
 	conncreteError := responder.(*common.ApiErrorResponse)
