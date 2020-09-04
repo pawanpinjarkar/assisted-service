@@ -25,6 +25,7 @@ import (
 
 	"github.com/openshift/assisted-service/internal/identity"
 
+	ign_3_1 "github.com/coreos/ignition/v2/config/v3_1"
 	"github.com/danielerez/go-dns-client/pkg/dnsproviders"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
@@ -289,6 +290,56 @@ func (b *bareMetalInventory) getUserSshKey(params installer.GenerateClusterISOPa
 		"sshAuthorizedKeys": [
 		"%s"],
 		"groups": [ "sudo" ]}`, sshKey)
+}
+
+func validateIgnitionConfig(ignition string) error {
+	_, report, err := ign_3_1.Parse([]byte(ignition))
+	if err != nil {
+		return err
+	}
+	if report.IsFatal() {
+		return fmt.Errorf("Ignition validation failed: %s", report.String())
+	}
+	return nil
+}
+
+func (b *bareMetalInventory) GetClusterIgnitionConfig(ctx context.Context, params installer.GetClusterIgnitionConfigParams) middleware.Responder {
+	log := logutil.FromContext(ctx, b.log)
+
+	c, err := b.getCluster(ctx, params.ClusterID.String())
+	if err != nil {
+		return common.GenerateErrorResponder(err)
+	}
+	isoParams := installer.GenerateClusterISOParams{ClusterID: params.ClusterID, ImageCreateParams: &models.ImageCreateParams{}}
+
+	cfg, err := b.formatIgnitionFile(c, isoParams)
+	if err != nil {
+		log.WithError(err).Error("Failed to format ignition config")
+		return common.GenerateErrorResponder(err)
+	}
+
+	return installer.NewGetClusterIgnitionConfigOK().WithPayload(cfg)
+}
+
+func (b *bareMetalInventory) UpdateClusterIgnitionConfig(ctx context.Context, params installer.UpdateClusterIgnitionConfigParams) middleware.Responder {
+	log := logutil.FromContext(ctx, b.log)
+
+	_, err := b.getCluster(ctx, params.ClusterID.String())
+	if err != nil {
+		return common.GenerateErrorResponder(err)
+	}
+
+	if err = validateIgnitionConfig(params.IgnitionConfigParams); err != nil {
+		log.WithError(err).Errorf("Ignition config patch %s failed validation", params.IgnitionConfigParams)
+		return installer.NewUpdateClusterIgnitionConfigBadRequest().WithPayload(common.GenerateError(http.StatusBadRequest, err))
+	}
+
+	err = b.db.Model(&common.Cluster{}).Where(identity.AddUserFilter(ctx, "id = ?"), params.ClusterID).Update("ignition_config_overrides", params.IgnitionConfigParams).Error
+	if err != nil {
+		return installer.NewUpdateClusterIgnitionConfigInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
+	}
+
+	return installer.NewUpdateClusterIgnitionConfigCreated()
 }
 
 func (b *bareMetalInventory) RegisterCluster(ctx context.Context, params installer.RegisterClusterParams) middleware.Responder {

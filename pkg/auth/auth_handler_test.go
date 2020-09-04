@@ -325,6 +325,12 @@ func (f fakeInventory) GetHostRequirements(ctx context.Context, params installer
 func (f fakeInventory) DownloadClusterLogs(ctx context.Context, params installer.DownloadClusterLogsParams) middleware.Responder {
 	panic("Implement Me!")
 }
+func (f fakeInventory) GetClusterIgnitionConfig(ctx context.Context, params installer.GetClusterIgnitionConfigParams) middleware.Responder {
+	panic("Implement Me!")
+}
+func (f fakeInventory) UpdateClusterIgnitionConfig(ctx context.Context, params installer.UpdateClusterIgnitionConfigParams) middleware.Responder {
+	panic("Implement Me!")
+}
 
 var _ restapi.InstallerAPI = fakeInventory{}
 
