@@ -58,6 +58,9 @@ type API interface {
 	   GetCluster retrieves the details of the open shift bare metal cluster*/
 	GetCluster(ctx context.Context, params *GetClusterParams) (*GetClusterOK, error)
 	/*
+	   GetClusterIgnitionConfig gets the cluster ignition config*/
+	GetClusterIgnitionConfig(ctx context.Context, params *GetClusterIgnitionConfigParams) (*GetClusterIgnitionConfigOK, error)
+	/*
 	   GetClusterInstallConfig gets the cluster install config yaml*/
 	GetClusterInstallConfig(ctx context.Context, params *GetClusterInstallConfigParams) (*GetClusterInstallConfigOK, error)
 	/*
@@ -102,6 +105,9 @@ type API interface {
 	/*
 	   UpdateCluster updates an open shift bare metal cluster definition*/
 	UpdateCluster(ctx context.Context, params *UpdateClusterParams) (*UpdateClusterCreated, error)
+	/*
+	   UpdateClusterIgnitionConfig overrides values in the initial ignition config*/
+	UpdateClusterIgnitionConfig(ctx context.Context, params *UpdateClusterIgnitionConfigParams) (*UpdateClusterIgnitionConfigCreated, error)
 	/*
 	   UpdateClusterInstallConfig overrides values in the install config*/
 	UpdateClusterInstallConfig(ctx context.Context, params *UpdateClusterInstallConfigParams) (*UpdateClusterInstallConfigCreated, error)
@@ -456,6 +462,31 @@ func (a *Client) GetCluster(ctx context.Context, params *GetClusterParams) (*Get
 		return nil, err
 	}
 	return result.(*GetClusterOK), nil
+
+}
+
+/*
+GetClusterIgnitionConfig gets the cluster ignition config
+*/
+func (a *Client) GetClusterIgnitionConfig(ctx context.Context, params *GetClusterIgnitionConfigParams) (*GetClusterIgnitionConfigOK, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "GetClusterIgnitionConfig",
+		Method:             "GET",
+		PathPattern:        "/clusters/{cluster_id}/ignition-config",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetClusterIgnitionConfigReader{formats: a.formats},
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*GetClusterIgnitionConfigOK), nil
 
 }
 
@@ -831,6 +862,31 @@ func (a *Client) UpdateCluster(ctx context.Context, params *UpdateClusterParams)
 		return nil, err
 	}
 	return result.(*UpdateClusterCreated), nil
+
+}
+
+/*
+UpdateClusterIgnitionConfig overrides values in the initial ignition config
+*/
+func (a *Client) UpdateClusterIgnitionConfig(ctx context.Context, params *UpdateClusterIgnitionConfigParams) (*UpdateClusterIgnitionConfigCreated, error) {
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "UpdateClusterIgnitionConfig",
+		Method:             "PATCH",
+		PathPattern:        "/clusters/{cluster_id}/ignition-config",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &UpdateClusterIgnitionConfigReader{formats: a.formats},
+		AuthInfo:           a.authInfo,
+		Context:            ctx,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*UpdateClusterIgnitionConfigCreated), nil
 
 }
 

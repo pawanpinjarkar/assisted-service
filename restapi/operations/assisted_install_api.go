@@ -88,6 +88,9 @@ func NewAssistedInstallAPI(spec *loads.Document) *AssistedInstallAPI {
 		InstallerGetClusterHandler: installer.GetClusterHandlerFunc(func(params installer.GetClusterParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation installer.GetCluster has not yet been implemented")
 		}),
+		InstallerGetClusterIgnitionConfigHandler: installer.GetClusterIgnitionConfigHandlerFunc(func(params installer.GetClusterIgnitionConfigParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation installer.GetClusterIgnitionConfig has not yet been implemented")
+		}),
 		InstallerGetClusterInstallConfigHandler: installer.GetClusterInstallConfigHandlerFunc(func(params installer.GetClusterInstallConfigParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation installer.GetClusterInstallConfig has not yet been implemented")
 		}),
@@ -141,6 +144,9 @@ func NewAssistedInstallAPI(spec *loads.Document) *AssistedInstallAPI {
 		}),
 		InstallerUpdateClusterHandler: installer.UpdateClusterHandlerFunc(func(params installer.UpdateClusterParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation installer.UpdateCluster has not yet been implemented")
+		}),
+		InstallerUpdateClusterIgnitionConfigHandler: installer.UpdateClusterIgnitionConfigHandlerFunc(func(params installer.UpdateClusterIgnitionConfigParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation installer.UpdateClusterIgnitionConfig has not yet been implemented")
 		}),
 		InstallerUpdateClusterInstallConfigHandler: installer.UpdateClusterInstallConfigHandlerFunc(func(params installer.UpdateClusterInstallConfigParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation installer.UpdateClusterInstallConfig has not yet been implemented")
@@ -242,6 +248,8 @@ type AssistedInstallAPI struct {
 	InstallerGenerateClusterISOHandler installer.GenerateClusterISOHandler
 	// InstallerGetClusterHandler sets the operation handler for the get cluster operation
 	InstallerGetClusterHandler installer.GetClusterHandler
+	// InstallerGetClusterIgnitionConfigHandler sets the operation handler for the get cluster ignition config operation
+	InstallerGetClusterIgnitionConfigHandler installer.GetClusterIgnitionConfigHandler
 	// InstallerGetClusterInstallConfigHandler sets the operation handler for the get cluster install config operation
 	InstallerGetClusterInstallConfigHandler installer.GetClusterInstallConfigHandler
 	// InstallerGetCredentialsHandler sets the operation handler for the get credentials operation
@@ -278,6 +286,8 @@ type AssistedInstallAPI struct {
 	InstallerResetClusterHandler installer.ResetClusterHandler
 	// InstallerUpdateClusterHandler sets the operation handler for the update cluster operation
 	InstallerUpdateClusterHandler installer.UpdateClusterHandler
+	// InstallerUpdateClusterIgnitionConfigHandler sets the operation handler for the update cluster ignition config operation
+	InstallerUpdateClusterIgnitionConfigHandler installer.UpdateClusterIgnitionConfigHandler
 	// InstallerUpdateClusterInstallConfigHandler sets the operation handler for the update cluster install config operation
 	InstallerUpdateClusterInstallConfigHandler installer.UpdateClusterInstallConfigHandler
 	// InstallerUpdateHostInstallProgressHandler sets the operation handler for the update host install progress operation
@@ -414,6 +424,9 @@ func (o *AssistedInstallAPI) Validate() error {
 	if o.InstallerGetClusterHandler == nil {
 		unregistered = append(unregistered, "installer.GetClusterHandler")
 	}
+	if o.InstallerGetClusterIgnitionConfigHandler == nil {
+		unregistered = append(unregistered, "installer.GetClusterIgnitionConfigHandler")
+	}
 	if o.InstallerGetClusterInstallConfigHandler == nil {
 		unregistered = append(unregistered, "installer.GetClusterInstallConfigHandler")
 	}
@@ -467,6 +480,9 @@ func (o *AssistedInstallAPI) Validate() error {
 	}
 	if o.InstallerUpdateClusterHandler == nil {
 		unregistered = append(unregistered, "installer.UpdateClusterHandler")
+	}
+	if o.InstallerUpdateClusterIgnitionConfigHandler == nil {
+		unregistered = append(unregistered, "installer.UpdateClusterIgnitionConfigHandler")
 	}
 	if o.InstallerUpdateClusterInstallConfigHandler == nil {
 		unregistered = append(unregistered, "installer.UpdateClusterInstallConfigHandler")
@@ -640,6 +656,10 @@ func (o *AssistedInstallAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/clusters/{cluster_id}/ignition-config"] = installer.NewGetClusterIgnitionConfig(o.context, o.InstallerGetClusterIgnitionConfigHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/clusters/{cluster_id}/install-config"] = installer.NewGetClusterInstallConfig(o.context, o.InstallerGetClusterInstallConfigHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -709,6 +729,10 @@ func (o *AssistedInstallAPI) initHandlerCache() {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
 	o.handlers["PATCH"]["/clusters/{cluster_id}"] = installer.NewUpdateCluster(o.context, o.InstallerUpdateClusterHandler)
+	if o.handlers["PATCH"] == nil {
+		o.handlers["PATCH"] = make(map[string]http.Handler)
+	}
+	o.handlers["PATCH"]["/clusters/{cluster_id}/ignition-config"] = installer.NewUpdateClusterIgnitionConfig(o.context, o.InstallerUpdateClusterIgnitionConfigHandler)
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
