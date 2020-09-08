@@ -323,13 +323,16 @@ var _ = Describe("GenerateClusterISO", func() {
 var _ = Describe("IgnitionParameters", func() {
 
 	var (
-		bm *bareMetalInventory
+		bm      *bareMetalInventory
+		cluster common.Cluster
 	)
 
-	cluster := common.Cluster{Cluster: models.Cluster{
-		ID:            strToUUID("a640ef36-dcb1-11ea-87d0-0242ac130003"),
-		PullSecretSet: false,
-	}, PullSecret: "{\"auths\":{\"cloud.openshift.com\":{\"auth\":\"dG9rZW46dGVzdAo=\",\"email\":\"coyote@acme.com\"}}}"}
+	BeforeEach(func() {
+		cluster = common.Cluster{Cluster: models.Cluster{
+			ID:            strToUUID("a640ef36-dcb1-11ea-87d0-0242ac130003"),
+			PullSecretSet: false,
+		}, PullSecret: "{\"auths\":{\"cloud.openshift.com\":{\"auth\":\"dG9rZW46dGVzdAo=\",\"email\":\"coyote@acme.com\"}}}"}
+	})
 
 	RunIgnitionConfigurationTests := func() {
 
@@ -374,10 +377,9 @@ var _ = Describe("IgnitionParameters", func() {
 
 		It("ignition_file_contains_http_proxy", func() {
 			bm.ServiceBaseURL = "file://10.56.20.70:7878"
-			proxyCluster := cluster
-			proxyCluster.HTTPProxy = "http://10.10.1.1:3128"
-			proxyCluster.NoProxy = "quay.io"
-			text, err := bm.formatIgnitionFile(&proxyCluster, installer.GenerateClusterISOParams{
+			cluster.HTTPProxy = "http://10.10.1.1:3128"
+			cluster.NoProxy = "quay.io"
+			text, err := bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
 				ImageCreateParams: &models.ImageCreateParams{},
 			})
 
@@ -385,7 +387,7 @@ var _ = Describe("IgnitionParameters", func() {
 			Expect(text).Should(ContainSubstring(`"proxy": { "httpProxy": "http://10.10.1.1:3128", "noProxy": ["quay.io"] }`))
 		})
 
-		It("produces a valid ignition v3.1 spec", func() {
+		It("produces a valid ignition v3.1 spec by default", func() {
 			text, err := bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
 				ImageCreateParams: &models.ImageCreateParams{},
 			})
@@ -394,6 +396,26 @@ var _ = Describe("IgnitionParameters", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(report.IsFatal()).To(BeFalse())
 			Expect(config.Ignition.Version).To(Equal("3.1.0"))
+		})
+
+		It("produces a valid ignition v3.1 spec with overrides", func() {
+			cluster.IgnitionConfigOverrides = `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
+			text, err := bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
+				ImageCreateParams: &models.ImageCreateParams{},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			config, report, err := ign_3_1.Parse([]byte(text))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(report.IsFatal()).To(BeFalse())
+			Expect(len(config.Storage.Files)).To(Equal(2))
+		})
+
+		It("fails when given overrides with an incompatible version", func() {
+			cluster.IgnitionConfigOverrides = `{"ignition": {"version": "2.2.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
+			_, err := bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
+				ImageCreateParams: &models.ImageCreateParams{},
+			})
+			Expect(err).To(HaveOccurred())
 		})
 	}
 

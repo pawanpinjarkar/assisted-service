@@ -26,6 +26,7 @@ import (
 	"github.com/openshift/assisted-service/internal/identity"
 
 	ign_3_1 "github.com/coreos/ignition/v2/config/v3_1"
+	ign_validate "github.com/coreos/ignition/v2/config/validate"
 	"github.com/danielerez/go-dns-client/pkg/dnsproviders"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
@@ -236,6 +237,37 @@ func (b *bareMetalInventory) updatePullSecret(pullSecret string, log logrus.Fiel
 	return pullSecret, nil
 }
 
+func mergeIgnitionConfig(base []byte, overrides []byte) (string, error) {
+	baseConfig, report, err := ign_3_1.Parse(base)
+	if err != nil {
+		return "", err
+	}
+	if report.IsFatal() {
+		return "", fmt.Errorf("base ignition config is invalid: %s", report.String())
+	}
+
+	overrideConfig, report, err := ign_3_1.Parse(overrides)
+	if err != nil {
+		return "", err
+	}
+	if report.IsFatal() {
+		return "", fmt.Errorf("override ignition config is invalid: %s", report.String())
+	}
+
+	config := ign_3_1.Merge(baseConfig, overrideConfig)
+	report = ign_validate.ValidateWithContext(config, nil)
+	if report.IsFatal() {
+		return "", fmt.Errorf("merged ignition config is invalid: %s", report.String())
+	}
+
+	res, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+
+	return string(res), nil
+}
+
 func (b *bareMetalInventory) formatIgnitionFile(cluster *common.Cluster, params installer.GenerateClusterISOParams) (string, error) {
 	creds, err := validations.ParsePullSecret(cluster.PullSecret)
 	if err != nil {
@@ -276,7 +308,16 @@ func (b *bareMetalInventory) formatIgnitionFile(cluster *common.Cluster, params 
 	if err = tmpl.Execute(buf, ignitionParams); err != nil {
 		return "", err
 	}
-	return buf.String(), nil
+
+	res := buf.String()
+	if cluster.IgnitionConfigOverrides != "" {
+		res, err = mergeIgnitionConfig(buf.Bytes(), []byte(cluster.IgnitionConfigOverrides))
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return res, nil
 }
 
 func (b *bareMetalInventory) getUserSshKey(params installer.GenerateClusterISOParams) string {
