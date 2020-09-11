@@ -399,15 +399,26 @@ var _ = Describe("IgnitionParameters", func() {
 		})
 
 		It("produces a valid ignition v3.1 spec with overrides", func() {
-			cluster.IgnitionConfigOverrides = `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
 			text, err := bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
 				ImageCreateParams: &models.ImageCreateParams{},
 			})
 			Expect(err).NotTo(HaveOccurred())
+
 			config, report, err := ign_3_1.Parse([]byte(text))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(report.IsFatal()).To(BeFalse())
-			Expect(len(config.Storage.Files)).To(Equal(2))
+			orig_files := len(config.Storage.Files)
+
+			cluster.IgnitionConfigOverrides = `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
+			text, err = bm.formatIgnitionFile(&cluster, installer.GenerateClusterISOParams{
+				ImageCreateParams: &models.ImageCreateParams{},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			config, report, err = ign_3_1.Parse([]byte(text))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(report.IsFatal()).To(BeFalse())
+			Expect(len(config.Storage.Files)).To(Equal(orig_files + 1))
 		})
 
 		It("fails when given overrides with an incompatible version", func() {
