@@ -2887,7 +2887,7 @@ var _ = Describe("UpdateClusterIgnitionConfig", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
 		params := installer.UpdateClusterIgnitionConfigParams{
 			ClusterID:            clusterID,
-			IgnitionConfigParams: override,
+			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
 		}
 		response := bm.UpdateClusterIgnitionConfig(ctx, params)
 		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigCreated{}))
@@ -2902,7 +2902,7 @@ var _ = Describe("UpdateClusterIgnitionConfig", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
 		params := installer.UpdateClusterIgnitionConfigParams{
 			ClusterID:            strfmt.UUID(uuid.New().String()),
-			IgnitionConfigParams: override,
+			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
 		}
 		response := bm.UpdateClusterIgnitionConfig(ctx, params)
 		verifyApiError(response, http.StatusNotFound)
@@ -2912,7 +2912,7 @@ var _ = Describe("UpdateClusterIgnitionConfig", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}}}`
 		params := installer.UpdateClusterIgnitionConfigParams{
 			ClusterID:            clusterID,
-			IgnitionConfigParams: override,
+			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
 		}
 		response := bm.UpdateClusterIgnitionConfig(ctx, params)
 		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigBadRequest{}))
@@ -2923,7 +2923,7 @@ var _ = Describe("UpdateClusterIgnitionConfig", func() {
 		override := `{"storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
 		params := installer.UpdateClusterIgnitionConfigParams{
 			ClusterID:            clusterID,
-			IgnitionConfigParams: override,
+			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
 		}
 		response := bm.UpdateClusterIgnitionConfig(ctx, params)
 		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigBadRequest{}))

@@ -14,6 +14,8 @@ import (
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+
+	"github.com/openshift/assisted-service/models"
 )
 
 // NewUpdateClusterIgnitionConfigParams creates a new UpdateClusterIgnitionConfigParams object
@@ -63,7 +65,7 @@ type UpdateClusterIgnitionConfigParams struct {
 	/*ClusterID*/
 	ClusterID strfmt.UUID
 	/*IgnitionConfigParams*/
-	IgnitionConfigParams string
+	IgnitionConfigParams *models.IgnitionConfigParams
 
 	timeout    time.Duration
 	Context    context.Context
@@ -115,13 +117,13 @@ func (o *UpdateClusterIgnitionConfigParams) SetClusterID(clusterID strfmt.UUID) 
 }
 
 // WithIgnitionConfigParams adds the ignitionConfigParams to the update cluster ignition config params
-func (o *UpdateClusterIgnitionConfigParams) WithIgnitionConfigParams(ignitionConfigParams string) *UpdateClusterIgnitionConfigParams {
+func (o *UpdateClusterIgnitionConfigParams) WithIgnitionConfigParams(ignitionConfigParams *models.IgnitionConfigParams) *UpdateClusterIgnitionConfigParams {
 	o.SetIgnitionConfigParams(ignitionConfigParams)
 	return o
 }
 
 // SetIgnitionConfigParams adds the ignitionConfigParams to the update cluster ignition config params
-func (o *UpdateClusterIgnitionConfigParams) SetIgnitionConfigParams(ignitionConfigParams string) {
+func (o *UpdateClusterIgnitionConfigParams) SetIgnitionConfigParams(ignitionConfigParams *models.IgnitionConfigParams) {
 	o.IgnitionConfigParams = ignitionConfigParams
 }
 
@@ -138,8 +140,10 @@ func (o *UpdateClusterIgnitionConfigParams) WriteToRequest(r runtime.ClientReque
 		return err
 	}
 
-	if err := r.SetBodyParam(o.IgnitionConfigParams); err != nil {
-		return err
+	if o.IgnitionConfigParams != nil {
+		if err := r.SetBodyParam(o.IgnitionConfigParams); err != nil {
+			return err
+		}
 	}
 
 	if len(res) > 0 {

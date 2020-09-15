@@ -637,7 +637,7 @@ paths:
         200:
           description: Success.
           schema:
-            type: string
+            $ref: '#/definitions/ignition-config-params'
         401:
           description: Unauthorized.
           schema:
@@ -673,7 +673,7 @@ paths:
           name: ignition-config-params
           required: true
           schema:
-            type: string
+            $ref: '#/definitions/ignition-config-params'
       responses:
         201:
           description: Success.
@@ -2422,6 +2422,11 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/connectivity-remote-host'
+
+  ignition-config-params:
+    properties:
+      config:
+        type: string
 
   ingress-cert-params:
     type: string

@@ -359,7 +359,8 @@ func (b *bareMetalInventory) GetClusterIgnitionConfig(ctx context.Context, param
 		return common.GenerateErrorResponder(err)
 	}
 
-	return installer.NewGetClusterIgnitionConfigOK().WithPayload(cfg)
+	configParams := models.IgnitionConfigParams{Config: cfg}
+	return installer.NewGetClusterIgnitionConfigOK().WithPayload(&configParams)
 }
 
 func (b *bareMetalInventory) UpdateClusterIgnitionConfig(ctx context.Context, params installer.UpdateClusterIgnitionConfigParams) middleware.Responder {
@@ -370,12 +371,12 @@ func (b *bareMetalInventory) UpdateClusterIgnitionConfig(ctx context.Context, pa
 		return common.GenerateErrorResponder(err)
 	}
 
-	if err = validateIgnitionConfig(params.IgnitionConfigParams); err != nil {
+	if err = validateIgnitionConfig(params.IgnitionConfigParams.Config); err != nil {
 		log.WithError(err).Errorf("Ignition config patch %s failed validation", params.IgnitionConfigParams)
 		return installer.NewUpdateClusterIgnitionConfigBadRequest().WithPayload(common.GenerateError(http.StatusBadRequest, err))
 	}
 
-	err = b.db.Model(&common.Cluster{}).Where(identity.AddUserFilter(ctx, "id = ?"), params.ClusterID).Update("ignition_config_overrides", params.IgnitionConfigParams).Error
+	err = b.db.Model(&common.Cluster{}).Where(identity.AddUserFilter(ctx, "id = ?"), params.ClusterID).Update("ignition_config_overrides", params.IgnitionConfigParams.Config).Error
 	if err != nil {
 		return installer.NewUpdateClusterIgnitionConfigInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
 	}

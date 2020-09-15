@@ -93,7 +93,7 @@ type UpdateClusterIgnitionConfigUnauthorized struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.InfraError `json:"body,omitempty"`
+	Payload *models.Error `json:"body,omitempty"`
 }
 
 // NewUpdateClusterIgnitionConfigUnauthorized creates UpdateClusterIgnitionConfigUnauthorized with default headers values
@@ -103,13 +103,13 @@ func NewUpdateClusterIgnitionConfigUnauthorized() *UpdateClusterIgnitionConfigUn
 }
 
 // WithPayload adds the payload to the update cluster ignition config unauthorized response
-func (o *UpdateClusterIgnitionConfigUnauthorized) WithPayload(payload *models.InfraError) *UpdateClusterIgnitionConfigUnauthorized {
+func (o *UpdateClusterIgnitionConfigUnauthorized) WithPayload(payload *models.Error) *UpdateClusterIgnitionConfigUnauthorized {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the update cluster ignition config unauthorized response
-func (o *UpdateClusterIgnitionConfigUnauthorized) SetPayload(payload *models.InfraError) {
+func (o *UpdateClusterIgnitionConfigUnauthorized) SetPayload(payload *models.Error) {
 	o.Payload = payload
 }
 
@@ -137,7 +137,7 @@ type UpdateClusterIgnitionConfigForbidden struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.InfraError `json:"body,omitempty"`
+	Payload *models.Error `json:"body,omitempty"`
 }
 
 // NewUpdateClusterIgnitionConfigForbidden creates UpdateClusterIgnitionConfigForbidden with default headers values
@@ -147,13 +147,13 @@ func NewUpdateClusterIgnitionConfigForbidden() *UpdateClusterIgnitionConfigForbi
 }
 
 // WithPayload adds the payload to the update cluster ignition config forbidden response
-func (o *UpdateClusterIgnitionConfigForbidden) WithPayload(payload *models.InfraError) *UpdateClusterIgnitionConfigForbidden {
+func (o *UpdateClusterIgnitionConfigForbidden) WithPayload(payload *models.Error) *UpdateClusterIgnitionConfigForbidden {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the update cluster ignition config forbidden response
-func (o *UpdateClusterIgnitionConfigForbidden) SetPayload(payload *models.InfraError) {
+func (o *UpdateClusterIgnitionConfigForbidden) SetPayload(payload *models.Error) {
 	o.Payload = payload
 }
 

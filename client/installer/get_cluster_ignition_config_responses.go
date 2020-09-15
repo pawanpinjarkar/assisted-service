@@ -75,21 +75,23 @@ func NewGetClusterIgnitionConfigOK() *GetClusterIgnitionConfigOK {
 Success.
 */
 type GetClusterIgnitionConfigOK struct {
-	Payload string
+	Payload *models.IgnitionConfigParams
 }
 
 func (o *GetClusterIgnitionConfigOK) Error() string {
 	return fmt.Sprintf("[GET /clusters/{cluster_id}/ignition-config][%d] getClusterIgnitionConfigOK  %+v", 200, o.Payload)
 }
 
-func (o *GetClusterIgnitionConfigOK) GetPayload() string {
+func (o *GetClusterIgnitionConfigOK) GetPayload() *models.IgnitionConfigParams {
 	return o.Payload
 }
 
 func (o *GetClusterIgnitionConfigOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.IgnitionConfigParams)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 

@@ -25,7 +25,7 @@ type GetClusterIgnitionConfigOK struct {
 	/*
 	  In: Body
 	*/
-	Payload string `json:"body,omitempty"`
+	Payload *models.IgnitionConfigParams `json:"body,omitempty"`
 }
 
 // NewGetClusterIgnitionConfigOK creates GetClusterIgnitionConfigOK with default headers values
@@ -35,13 +35,13 @@ func NewGetClusterIgnitionConfigOK() *GetClusterIgnitionConfigOK {
 }
 
 // WithPayload adds the payload to the get cluster ignition config o k response
-func (o *GetClusterIgnitionConfigOK) WithPayload(payload string) *GetClusterIgnitionConfigOK {
+func (o *GetClusterIgnitionConfigOK) WithPayload(payload *models.IgnitionConfigParams) *GetClusterIgnitionConfigOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get cluster ignition config o k response
-func (o *GetClusterIgnitionConfigOK) SetPayload(payload string) {
+func (o *GetClusterIgnitionConfigOK) SetPayload(payload *models.IgnitionConfigParams) {
 	o.Payload = payload
 }
 
@@ -49,9 +49,11 @@ func (o *GetClusterIgnitionConfigOK) SetPayload(payload string) {
 func (o *GetClusterIgnitionConfigOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.WriteHeader(200)
-	payload := o.Payload
-	if err := producer.Produce(rw, payload); err != nil {
-		panic(err) // let the recovery middleware deal with this
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
 	}
 }
 

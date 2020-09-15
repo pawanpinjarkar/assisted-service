@@ -2072,7 +2072,7 @@ func init() {
           "200": {
             "description": "Success.",
             "schema": {
-              "type": "string"
+              "$ref": "#/definitions/ignition-config-params"
             }
           },
           "401": {
@@ -2126,7 +2126,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "type": "string"
+              "$ref": "#/definitions/ignition-config-params"
             }
           }
         ],
@@ -2143,13 +2143,13 @@ func init() {
           "401": {
             "description": "Unauthorized.",
             "schema": {
-              "$ref": "#/definitions/infra_error"
+              "$ref": "#/definitions/error"
             }
           },
           "403": {
             "description": "Forbidden.",
             "schema": {
-              "$ref": "#/definitions/infra_error"
+              "$ref": "#/definitions/error"
             }
           },
           "404": {
@@ -2264,13 +2264,13 @@ func init() {
           "401": {
             "description": "Unauthorized.",
             "schema": {
-              "$ref": "#/definitions/error"
+              "$ref": "#/definitions/infra_error"
             }
           },
           "403": {
             "description": "Forbidden.",
             "schema": {
-              "$ref": "#/definitions/error"
+              "$ref": "#/definitions/infra_error"
             }
           },
           "404": {
@@ -3585,6 +3585,13 @@ func init() {
             "type": "string",
             "format": "uuid"
           }
+        }
+      }
+    },
+    "ignition-config-params": {
+      "properties": {
+        "config": {
+          "type": "string"
         }
       }
     },
@@ -5997,7 +6004,7 @@ func init() {
           "200": {
             "description": "Success.",
             "schema": {
-              "type": "string"
+              "$ref": "#/definitions/ignition-config-params"
             }
           },
           "401": {
@@ -6051,7 +6058,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "type": "string"
+              "$ref": "#/definitions/ignition-config-params"
             }
           }
         ],
@@ -6068,13 +6075,13 @@ func init() {
           "401": {
             "description": "Unauthorized.",
             "schema": {
-              "$ref": "#/definitions/infra_error"
+              "$ref": "#/definitions/error"
             }
           },
           "403": {
             "description": "Forbidden.",
             "schema": {
-              "$ref": "#/definitions/infra_error"
+              "$ref": "#/definitions/error"
             }
           },
           "404": {
@@ -6189,13 +6196,13 @@ func init() {
           "401": {
             "description": "Unauthorized.",
             "schema": {
-              "$ref": "#/definitions/error"
+              "$ref": "#/definitions/infra_error"
             }
           },
           "403": {
             "description": "Forbidden.",
             "schema": {
-              "$ref": "#/definitions/error"
+              "$ref": "#/definitions/infra_error"
             }
           },
           "404": {
@@ -7516,6 +7523,13 @@ func init() {
             "type": "string",
             "format": "uuid"
           }
+        }
+      }
+    },
+    "ignition-config-params": {
+      "properties": {
+        "config": {
+          "type": "string"
         }
       }
     },

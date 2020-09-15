@@ -14,6 +14,8 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
+
+	"github.com/openshift/assisted-service/models"
 )
 
 // NewUpdateClusterIgnitionConfigParams creates a new UpdateClusterIgnitionConfigParams object
@@ -41,7 +43,7 @@ type UpdateClusterIgnitionConfigParams struct {
 	  Required: true
 	  In: body
 	*/
-	IgnitionConfigParams string
+	IgnitionConfigParams *models.IgnitionConfigParams
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -60,7 +62,7 @@ func (o *UpdateClusterIgnitionConfigParams) BindRequest(r *http.Request, route *
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body string
+		var body models.IgnitionConfigParams
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
 				res = append(res, errors.Required("ignitionConfigParams", "body", ""))
@@ -68,8 +70,14 @@ func (o *UpdateClusterIgnitionConfigParams) BindRequest(r *http.Request, route *
 				res = append(res, errors.NewParseError("ignitionConfigParams", "body", "", err))
 			}
 		} else {
-			// no validation required on inline body
-			o.IgnitionConfigParams = body
+			// validate body object
+			if err := body.Validate(route.Formats); err != nil {
+				res = append(res, err)
+			}
+
+			if len(res) == 0 {
+				o.IgnitionConfigParams = &body
+			}
 		}
 	} else {
 		res = append(res, errors.Required("ignitionConfigParams", "body", ""))

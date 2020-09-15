@@ -135,20 +135,20 @@ func NewUpdateClusterIgnitionConfigUnauthorized() *UpdateClusterIgnitionConfigUn
 Unauthorized.
 */
 type UpdateClusterIgnitionConfigUnauthorized struct {
-	Payload *models.InfraError
+	Payload *models.Error
 }
 
 func (o *UpdateClusterIgnitionConfigUnauthorized) Error() string {
 	return fmt.Sprintf("[PATCH /clusters/{cluster_id}/ignition-config][%d] updateClusterIgnitionConfigUnauthorized  %+v", 401, o.Payload)
 }
 
-func (o *UpdateClusterIgnitionConfigUnauthorized) GetPayload() *models.InfraError {
+func (o *UpdateClusterIgnitionConfigUnauthorized) GetPayload() *models.Error {
 	return o.Payload
 }
 
 func (o *UpdateClusterIgnitionConfigUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.InfraError)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -168,20 +168,20 @@ func NewUpdateClusterIgnitionConfigForbidden() *UpdateClusterIgnitionConfigForbi
 Forbidden.
 */
 type UpdateClusterIgnitionConfigForbidden struct {
-	Payload *models.InfraError
+	Payload *models.Error
 }
 
 func (o *UpdateClusterIgnitionConfigForbidden) Error() string {
 	return fmt.Sprintf("[PATCH /clusters/{cluster_id}/ignition-config][%d] updateClusterIgnitionConfigForbidden  %+v", 403, o.Payload)
 }
 
-func (o *UpdateClusterIgnitionConfigForbidden) GetPayload() *models.InfraError {
+func (o *UpdateClusterIgnitionConfigForbidden) GetPayload() *models.Error {
 	return o.Payload
 }
 
 func (o *UpdateClusterIgnitionConfigForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.InfraError)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
