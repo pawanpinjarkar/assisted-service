@@ -621,12 +621,12 @@ paths:
           schema:
             $ref: '#/definitions/error'
 
-  /clusters/{cluster_id}/ignition-config:
+  /clusters/{cluster_id}/discovery-ignition:
     get:
       tags:
         - installer
-      summary: Get the cluster ignition config
-      operationId: GetClusterIgnitionConfig
+      summary: Get the cluster discovery ignition config
+      operationId: GetDiscoveryIgnition
       parameters:
         - in: path
           name: cluster_id
@@ -637,7 +637,7 @@ paths:
         200:
           description: Success.
           schema:
-            $ref: '#/definitions/ignition-config-params'
+            $ref: '#/definitions/discovery-ignition-params'
         401:
           description: Unauthorized.
           schema:
@@ -661,8 +661,8 @@ paths:
     patch:
       tags:
         - installer
-      summary: Override values in the initial ignition config
-      operationId: UpdateClusterIgnitionConfig
+      summary: Override values in the discovery ignition config
+      operationId: UpdateDiscoveryIgnition
       parameters:
         - in: path
           name: cluster_id
@@ -670,10 +670,10 @@ paths:
           format: uuid
           required: true
         - in: body
-          name: ignition-config-params
+          name: discovery-ignition-params
           required: true
           schema:
-            $ref: '#/definitions/ignition-config-params'
+            $ref: '#/definitions/discovery-ignition-params'
       responses:
         201:
           description: Success.
@@ -2423,7 +2423,7 @@ definitions:
         items:
           $ref: '#/definitions/connectivity-remote-host'
 
-  ignition-config-params:
+  discovery-ignition-params:
     properties:
       config:
         type: string

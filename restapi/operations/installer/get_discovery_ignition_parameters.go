@@ -6,30 +6,26 @@ package installer
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
-
-	"github.com/openshift/assisted-service/models"
 )
 
-// NewUpdateClusterIgnitionConfigParams creates a new UpdateClusterIgnitionConfigParams object
+// NewGetDiscoveryIgnitionParams creates a new GetDiscoveryIgnitionParams object
 // no default values defined in spec.
-func NewUpdateClusterIgnitionConfigParams() UpdateClusterIgnitionConfigParams {
+func NewGetDiscoveryIgnitionParams() GetDiscoveryIgnitionParams {
 
-	return UpdateClusterIgnitionConfigParams{}
+	return GetDiscoveryIgnitionParams{}
 }
 
-// UpdateClusterIgnitionConfigParams contains all the bound params for the update cluster ignition config operation
+// GetDiscoveryIgnitionParams contains all the bound params for the get discovery ignition operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters UpdateClusterIgnitionConfig
-type UpdateClusterIgnitionConfigParams struct {
+// swagger:parameters GetDiscoveryIgnition
+type GetDiscoveryIgnitionParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -39,18 +35,13 @@ type UpdateClusterIgnitionConfigParams struct {
 	  In: path
 	*/
 	ClusterID strfmt.UUID
-	/*
-	  Required: true
-	  In: body
-	*/
-	IgnitionConfigParams *models.IgnitionConfigParams
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewUpdateClusterIgnitionConfigParams() beforehand.
-func (o *UpdateClusterIgnitionConfigParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewGetDiscoveryIgnitionParams() beforehand.
+func (o *GetDiscoveryIgnitionParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
@@ -60,28 +51,6 @@ func (o *UpdateClusterIgnitionConfigParams) BindRequest(r *http.Request, route *
 		res = append(res, err)
 	}
 
-	if runtime.HasBody(r) {
-		defer r.Body.Close()
-		var body models.IgnitionConfigParams
-		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			if err == io.EOF {
-				res = append(res, errors.Required("ignitionConfigParams", "body", ""))
-			} else {
-				res = append(res, errors.NewParseError("ignitionConfigParams", "body", "", err))
-			}
-		} else {
-			// validate body object
-			if err := body.Validate(route.Formats); err != nil {
-				res = append(res, err)
-			}
-
-			if len(res) == 0 {
-				o.IgnitionConfigParams = &body
-			}
-		}
-	} else {
-		res = append(res, errors.Required("ignitionConfigParams", "body", ""))
-	}
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
@@ -89,7 +58,7 @@ func (o *UpdateClusterIgnitionConfigParams) BindRequest(r *http.Request, route *
 }
 
 // bindClusterID binds and validates parameter ClusterID from path.
-func (o *UpdateClusterIgnitionConfigParams) bindClusterID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetDiscoveryIgnitionParams) bindClusterID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -113,7 +82,7 @@ func (o *UpdateClusterIgnitionConfigParams) bindClusterID(rawData []string, hasK
 }
 
 // validateClusterID carries on validations for parameter ClusterID
-func (o *UpdateClusterIgnitionConfigParams) validateClusterID(formats strfmt.Registry) error {
+func (o *GetDiscoveryIgnitionParams) validateClusterID(formats strfmt.Registry) error {
 
 	if err := validate.FormatOf("cluster_id", "path", "uuid", o.ClusterID.String(), formats); err != nil {
 		return err

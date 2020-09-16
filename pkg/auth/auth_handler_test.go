@@ -325,10 +325,10 @@ func (f fakeInventory) GetHostRequirements(ctx context.Context, params installer
 func (f fakeInventory) DownloadClusterLogs(ctx context.Context, params installer.DownloadClusterLogsParams) middleware.Responder {
 	panic("Implement Me!")
 }
-func (f fakeInventory) GetClusterIgnitionConfig(ctx context.Context, params installer.GetClusterIgnitionConfigParams) middleware.Responder {
+func (f fakeInventory) GetDiscoveryIgnition(ctx context.Context, params installer.GetDiscoveryIgnitionParams) middleware.Responder {
 	panic("Implement Me!")
 }
-func (f fakeInventory) UpdateClusterIgnitionConfig(ctx context.Context, params installer.UpdateClusterIgnitionConfigParams) middleware.Responder {
+func (f fakeInventory) UpdateDiscoveryIgnition(ctx context.Context, params installer.UpdateDiscoveryIgnitionParams) middleware.Responder {
 	panic("Implement Me!")
 }
 

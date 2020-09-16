@@ -10,22 +10,22 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// IgnitionConfigParams ignition config params
+// DiscoveryIgnitionParams discovery ignition params
 //
-// swagger:model ignition-config-params
-type IgnitionConfigParams struct {
+// swagger:model discovery-ignition-params
+type DiscoveryIgnitionParams struct {
 
 	// config
 	Config string `json:"config,omitempty"`
 }
 
-// Validate validates this ignition config params
-func (m *IgnitionConfigParams) Validate(formats strfmt.Registry) error {
+// Validate validates this discovery ignition params
+func (m *DiscoveryIgnitionParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *IgnitionConfigParams) MarshalBinary() ([]byte, error) {
+func (m *DiscoveryIgnitionParams) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -33,8 +33,8 @@ func (m *IgnitionConfigParams) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *IgnitionConfigParams) UnmarshalBinary(b []byte) error {
-	var res IgnitionConfigParams
+func (m *DiscoveryIgnitionParams) UnmarshalBinary(b []byte) error {
+	var res DiscoveryIgnitionParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

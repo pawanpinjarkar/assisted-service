@@ -14,8 +14,8 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
-// GetClusterIgnitionConfigURL generates an URL for the get cluster ignition config operation
-type GetClusterIgnitionConfigURL struct {
+// GetDiscoveryIgnitionURL generates an URL for the get discovery ignition operation
+type GetDiscoveryIgnitionURL struct {
 	ClusterID strfmt.UUID
 
 	_basePath string
@@ -26,7 +26,7 @@ type GetClusterIgnitionConfigURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetClusterIgnitionConfigURL) WithBasePath(bp string) *GetClusterIgnitionConfigURL {
+func (o *GetDiscoveryIgnitionURL) WithBasePath(bp string) *GetDiscoveryIgnitionURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -34,21 +34,21 @@ func (o *GetClusterIgnitionConfigURL) WithBasePath(bp string) *GetClusterIgnitio
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetClusterIgnitionConfigURL) SetBasePath(bp string) {
+func (o *GetDiscoveryIgnitionURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetClusterIgnitionConfigURL) Build() (*url.URL, error) {
+func (o *GetDiscoveryIgnitionURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/clusters/{cluster_id}/ignition-config"
+	var _path = "/clusters/{cluster_id}/discovery-ignition"
 
 	clusterID := o.ClusterID.String()
 	if clusterID != "" {
 		_path = strings.Replace(_path, "{cluster_id}", clusterID, -1)
 	} else {
-		return nil, errors.New("clusterId is required on GetClusterIgnitionConfigURL")
+		return nil, errors.New("clusterId is required on GetDiscoveryIgnitionURL")
 	}
 
 	_basePath := o._basePath
@@ -61,7 +61,7 @@ func (o *GetClusterIgnitionConfigURL) Build() (*url.URL, error) {
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetClusterIgnitionConfigURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetDiscoveryIgnitionURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -72,17 +72,17 @@ func (o *GetClusterIgnitionConfigURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *GetClusterIgnitionConfigURL) String() string {
+func (o *GetDiscoveryIgnitionURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetClusterIgnitionConfigURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetDiscoveryIgnitionURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetClusterIgnitionConfigURL")
+		return nil, errors.New("scheme is required for a full url on GetDiscoveryIgnitionURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetClusterIgnitionConfigURL")
+		return nil, errors.New("host is required for a full url on GetDiscoveryIgnitionURL")
 	}
 
 	base, err := o.Build()
@@ -96,6 +96,6 @@ func (o *GetClusterIgnitionConfigURL) BuildFull(scheme, host string) (*url.URL, 
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetClusterIgnitionConfigURL) StringFull(scheme, host string) string {
+func (o *GetDiscoveryIgnitionURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

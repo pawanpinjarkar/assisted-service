@@ -344,7 +344,7 @@ func validateIgnitionConfig(ignition string) error {
 	return nil
 }
 
-func (b *bareMetalInventory) GetClusterIgnitionConfig(ctx context.Context, params installer.GetClusterIgnitionConfigParams) middleware.Responder {
+func (b *bareMetalInventory) GetDiscoveryIgnition(ctx context.Context, params installer.GetDiscoveryIgnitionParams) middleware.Responder {
 	log := logutil.FromContext(ctx, b.log)
 
 	c, err := b.getCluster(ctx, params.ClusterID.String())
@@ -359,11 +359,11 @@ func (b *bareMetalInventory) GetClusterIgnitionConfig(ctx context.Context, param
 		return common.GenerateErrorResponder(err)
 	}
 
-	configParams := models.IgnitionConfigParams{Config: cfg}
-	return installer.NewGetClusterIgnitionConfigOK().WithPayload(&configParams)
+	configParams := models.DiscoveryIgnitionParams{Config: cfg}
+	return installer.NewGetDiscoveryIgnitionOK().WithPayload(&configParams)
 }
 
-func (b *bareMetalInventory) UpdateClusterIgnitionConfig(ctx context.Context, params installer.UpdateClusterIgnitionConfigParams) middleware.Responder {
+func (b *bareMetalInventory) UpdateDiscoveryIgnition(ctx context.Context, params installer.UpdateDiscoveryIgnitionParams) middleware.Responder {
 	log := logutil.FromContext(ctx, b.log)
 
 	_, err := b.getCluster(ctx, params.ClusterID.String())
@@ -371,17 +371,17 @@ func (b *bareMetalInventory) UpdateClusterIgnitionConfig(ctx context.Context, pa
 		return common.GenerateErrorResponder(err)
 	}
 
-	if err = validateIgnitionConfig(params.IgnitionConfigParams.Config); err != nil {
-		log.WithError(err).Errorf("Ignition config patch %s failed validation", params.IgnitionConfigParams)
-		return installer.NewUpdateClusterIgnitionConfigBadRequest().WithPayload(common.GenerateError(http.StatusBadRequest, err))
+	if err = validateIgnitionConfig(params.DiscoveryIgnitionParams.Config); err != nil {
+		log.WithError(err).Errorf("Ignition config patch %s failed validation", params.DiscoveryIgnitionParams)
+		return installer.NewUpdateDiscoveryIgnitionBadRequest().WithPayload(common.GenerateError(http.StatusBadRequest, err))
 	}
 
-	err = b.db.Model(&common.Cluster{}).Where(identity.AddUserFilter(ctx, "id = ?"), params.ClusterID).Update("ignition_config_overrides", params.IgnitionConfigParams.Config).Error
+	err = b.db.Model(&common.Cluster{}).Where(identity.AddUserFilter(ctx, "id = ?"), params.ClusterID).Update("ignition_config_overrides", params.DiscoveryIgnitionParams.Config).Error
 	if err != nil {
-		return installer.NewUpdateClusterIgnitionConfigInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
+		return installer.NewUpdateDiscoveryIgnitionInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
 	}
 
-	return installer.NewUpdateClusterIgnitionConfigCreated()
+	return installer.NewUpdateDiscoveryIgnitionCreated()
 }
 
 func (b *bareMetalInventory) RegisterCluster(ctx context.Context, params installer.RegisterClusterParams) middleware.Responder {

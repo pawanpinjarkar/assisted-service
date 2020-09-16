@@ -685,6 +685,127 @@ func init() {
         }
       }
     },
+    "/clusters/{cluster_id}/discovery-ignition": {
+      "get": {
+        "tags": [
+          "installer"
+        ],
+        "summary": "Get the cluster discovery ignition config",
+        "operationId": "GetDiscoveryIgnition",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "cluster_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "schema": {
+              "$ref": "#/definitions/discovery-ignition-params"
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "schema": {
+              "$ref": "#/definitions/infra_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "schema": {
+              "$ref": "#/definitions/infra_error"
+            }
+          },
+          "404": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "installer"
+        ],
+        "summary": "Override values in the discovery ignition config",
+        "operationId": "UpdateDiscoveryIgnition",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "cluster_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "discovery-ignition-params",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/discovery-ignition-params"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success."
+          },
+          "400": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
     "/clusters/{cluster_id}/downloads/files": {
       "get": {
         "security": [
@@ -2052,127 +2173,6 @@ func init() {
         }
       }
     },
-    "/clusters/{cluster_id}/ignition-config": {
-      "get": {
-        "tags": [
-          "installer"
-        ],
-        "summary": "Get the cluster ignition config",
-        "operationId": "GetClusterIgnitionConfig",
-        "parameters": [
-          {
-            "type": "string",
-            "format": "uuid",
-            "name": "cluster_id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success.",
-            "schema": {
-              "$ref": "#/definitions/ignition-config-params"
-            }
-          },
-          "401": {
-            "description": "Unauthorized.",
-            "schema": {
-              "$ref": "#/definitions/infra_error"
-            }
-          },
-          "403": {
-            "description": "Forbidden.",
-            "schema": {
-              "$ref": "#/definitions/infra_error"
-            }
-          },
-          "404": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "installer"
-        ],
-        "summary": "Override values in the initial ignition config",
-        "operationId": "UpdateClusterIgnitionConfig",
-        "parameters": [
-          {
-            "type": "string",
-            "format": "uuid",
-            "name": "cluster_id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "ignition-config-params",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ignition-config-params"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Success."
-          },
-          "400": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "401": {
-            "description": "Unauthorized.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "403": {
-            "description": "Forbidden.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "404": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      }
-    },
     "/clusters/{cluster_id}/install-config": {
       "get": {
         "tags": [
@@ -3125,6 +3125,13 @@ func init() {
         }
       }
     },
+    "discovery-ignition-params": {
+      "properties": {
+        "config": {
+          "type": "string"
+        }
+      }
+    },
     "disk": {
       "type": "object",
       "properties": {
@@ -3585,13 +3592,6 @@ func init() {
             "type": "string",
             "format": "uuid"
           }
-        }
-      }
-    },
-    "ignition-config-params": {
-      "properties": {
-        "config": {
-          "type": "string"
         }
       }
     },
@@ -4617,6 +4617,127 @@ func init() {
         }
       }
     },
+    "/clusters/{cluster_id}/discovery-ignition": {
+      "get": {
+        "tags": [
+          "installer"
+        ],
+        "summary": "Get the cluster discovery ignition config",
+        "operationId": "GetDiscoveryIgnition",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "cluster_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "schema": {
+              "$ref": "#/definitions/discovery-ignition-params"
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "schema": {
+              "$ref": "#/definitions/infra_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "schema": {
+              "$ref": "#/definitions/infra_error"
+            }
+          },
+          "404": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "installer"
+        ],
+        "summary": "Override values in the discovery ignition config",
+        "operationId": "UpdateDiscoveryIgnition",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "uuid",
+            "name": "cluster_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "discovery-ignition-params",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/discovery-ignition-params"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success."
+          },
+          "400": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Error.",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
     "/clusters/{cluster_id}/downloads/files": {
       "get": {
         "security": [
@@ -5984,127 +6105,6 @@ func init() {
         }
       }
     },
-    "/clusters/{cluster_id}/ignition-config": {
-      "get": {
-        "tags": [
-          "installer"
-        ],
-        "summary": "Get the cluster ignition config",
-        "operationId": "GetClusterIgnitionConfig",
-        "parameters": [
-          {
-            "type": "string",
-            "format": "uuid",
-            "name": "cluster_id",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success.",
-            "schema": {
-              "$ref": "#/definitions/ignition-config-params"
-            }
-          },
-          "401": {
-            "description": "Unauthorized.",
-            "schema": {
-              "$ref": "#/definitions/infra_error"
-            }
-          },
-          "403": {
-            "description": "Forbidden.",
-            "schema": {
-              "$ref": "#/definitions/infra_error"
-            }
-          },
-          "404": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "installer"
-        ],
-        "summary": "Override values in the initial ignition config",
-        "operationId": "UpdateClusterIgnitionConfig",
-        "parameters": [
-          {
-            "type": "string",
-            "format": "uuid",
-            "name": "cluster_id",
-            "in": "path",
-            "required": true
-          },
-          {
-            "name": "ignition-config-params",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ignition-config-params"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Success."
-          },
-          "400": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "401": {
-            "description": "Unauthorized.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "403": {
-            "description": "Forbidden.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "404": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Error.",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      }
-    },
     "/clusters/{cluster_id}/install-config": {
       "get": {
         "tags": [
@@ -7063,6 +7063,13 @@ func init() {
         }
       }
     },
+    "discovery-ignition-params": {
+      "properties": {
+        "config": {
+          "type": "string"
+        }
+      }
+    },
     "disk": {
       "type": "object",
       "properties": {
@@ -7523,13 +7530,6 @@ func init() {
             "type": "string",
             "format": "uuid"
           }
-        }
-      }
-    },
-    "ignition-config-params": {
-      "properties": {
-        "config": {
-          "type": "string"
         }
       }
     },

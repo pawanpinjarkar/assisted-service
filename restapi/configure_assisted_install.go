@@ -76,14 +76,14 @@ type InstallerAPI interface {
 	/* GetCluster Retrieves the details of the OpenShift bare metal cluster. */
 	GetCluster(ctx context.Context, params installer.GetClusterParams) middleware.Responder
 
-	/* GetClusterIgnitionConfig Get the cluster ignition config */
-	GetClusterIgnitionConfig(ctx context.Context, params installer.GetClusterIgnitionConfigParams) middleware.Responder
-
 	/* GetClusterInstallConfig Get the cluster install config yaml */
 	GetClusterInstallConfig(ctx context.Context, params installer.GetClusterInstallConfigParams) middleware.Responder
 
 	/* GetCredentials Get the the cluster admin credentials. */
 	GetCredentials(ctx context.Context, params installer.GetCredentialsParams) middleware.Responder
+
+	/* GetDiscoveryIgnition Get the cluster discovery ignition config */
+	GetDiscoveryIgnition(ctx context.Context, params installer.GetDiscoveryIgnitionParams) middleware.Responder
 
 	/* GetFreeAddresses Retrieves the free address list for a network. */
 	GetFreeAddresses(ctx context.Context, params installer.GetFreeAddressesParams) middleware.Responder
@@ -124,11 +124,11 @@ type InstallerAPI interface {
 	/* UpdateCluster Updates an OpenShift bare metal cluster definition. */
 	UpdateCluster(ctx context.Context, params installer.UpdateClusterParams) middleware.Responder
 
-	/* UpdateClusterIgnitionConfig Override values in the initial ignition config */
-	UpdateClusterIgnitionConfig(ctx context.Context, params installer.UpdateClusterIgnitionConfigParams) middleware.Responder
-
 	/* UpdateClusterInstallConfig Override values in the install config */
 	UpdateClusterInstallConfig(ctx context.Context, params installer.UpdateClusterInstallConfigParams) middleware.Responder
+
+	/* UpdateDiscoveryIgnition Override values in the discovery ignition config */
+	UpdateDiscoveryIgnition(ctx context.Context, params installer.UpdateDiscoveryIgnitionParams) middleware.Responder
 
 	/* UpdateHostInstallProgress Update installation progress */
 	UpdateHostInstallProgress(ctx context.Context, params installer.UpdateHostInstallProgressParams) middleware.Responder
@@ -298,11 +298,6 @@ func HandlerAPI(c Config) (http.Handler, *operations.AssistedInstallAPI, error) 
 		ctx = storeAuth(ctx, principal)
 		return c.InstallerAPI.GetCluster(ctx, params)
 	})
-	api.InstallerGetClusterIgnitionConfigHandler = installer.GetClusterIgnitionConfigHandlerFunc(func(params installer.GetClusterIgnitionConfigParams, principal interface{}) middleware.Responder {
-		ctx := params.HTTPRequest.Context()
-		ctx = storeAuth(ctx, principal)
-		return c.InstallerAPI.GetClusterIgnitionConfig(ctx, params)
-	})
 	api.InstallerGetClusterInstallConfigHandler = installer.GetClusterInstallConfigHandlerFunc(func(params installer.GetClusterInstallConfigParams, principal interface{}) middleware.Responder {
 		ctx := params.HTTPRequest.Context()
 		ctx = storeAuth(ctx, principal)
@@ -312,6 +307,11 @@ func HandlerAPI(c Config) (http.Handler, *operations.AssistedInstallAPI, error) 
 		ctx := params.HTTPRequest.Context()
 		ctx = storeAuth(ctx, principal)
 		return c.InstallerAPI.GetCredentials(ctx, params)
+	})
+	api.InstallerGetDiscoveryIgnitionHandler = installer.GetDiscoveryIgnitionHandlerFunc(func(params installer.GetDiscoveryIgnitionParams, principal interface{}) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
+		ctx = storeAuth(ctx, principal)
+		return c.InstallerAPI.GetDiscoveryIgnition(ctx, params)
 	})
 	api.InstallerGetFreeAddressesHandler = installer.GetFreeAddressesHandlerFunc(func(params installer.GetFreeAddressesParams, principal interface{}) middleware.Responder {
 		ctx := params.HTTPRequest.Context()
@@ -393,15 +393,15 @@ func HandlerAPI(c Config) (http.Handler, *operations.AssistedInstallAPI, error) 
 		ctx = storeAuth(ctx, principal)
 		return c.InstallerAPI.UpdateCluster(ctx, params)
 	})
-	api.InstallerUpdateClusterIgnitionConfigHandler = installer.UpdateClusterIgnitionConfigHandlerFunc(func(params installer.UpdateClusterIgnitionConfigParams, principal interface{}) middleware.Responder {
-		ctx := params.HTTPRequest.Context()
-		ctx = storeAuth(ctx, principal)
-		return c.InstallerAPI.UpdateClusterIgnitionConfig(ctx, params)
-	})
 	api.InstallerUpdateClusterInstallConfigHandler = installer.UpdateClusterInstallConfigHandlerFunc(func(params installer.UpdateClusterInstallConfigParams, principal interface{}) middleware.Responder {
 		ctx := params.HTTPRequest.Context()
 		ctx = storeAuth(ctx, principal)
 		return c.InstallerAPI.UpdateClusterInstallConfig(ctx, params)
+	})
+	api.InstallerUpdateDiscoveryIgnitionHandler = installer.UpdateDiscoveryIgnitionHandlerFunc(func(params installer.UpdateDiscoveryIgnitionParams, principal interface{}) middleware.Responder {
+		ctx := params.HTTPRequest.Context()
+		ctx = storeAuth(ctx, principal)
+		return c.InstallerAPI.UpdateDiscoveryIgnition(ctx, params)
 	})
 	api.InstallerUpdateHostInstallProgressHandler = installer.UpdateHostInstallProgressHandlerFunc(func(params installer.UpdateHostInstallProgressParams, principal interface{}) middleware.Responder {
 		ctx := params.HTTPRequest.Context()

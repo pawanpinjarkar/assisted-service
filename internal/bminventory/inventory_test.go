@@ -2859,7 +2859,7 @@ var _ = Describe("UpdateClusterInstallConfig", func() {
 	})
 })
 
-var _ = Describe("UpdateClusterIgnitionConfig", func() {
+var _ = Describe("UpdateDiscoveryIgnition", func() {
 	var (
 		bm        *bareMetalInventory
 		cfg       Config
@@ -2885,12 +2885,12 @@ var _ = Describe("UpdateClusterIgnitionConfig", func() {
 
 	It("saves the given string to the cluster", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
-		params := installer.UpdateClusterIgnitionConfigParams{
-			ClusterID:            clusterID,
-			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
+		params := installer.UpdateDiscoveryIgnitionParams{
+			ClusterID:               clusterID,
+			DiscoveryIgnitionParams: &models.DiscoveryIgnitionParams{Config: override},
 		}
-		response := bm.UpdateClusterIgnitionConfig(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigCreated{}))
+		response := bm.UpdateDiscoveryIgnition(ctx, params)
+		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateDiscoveryIgnitionCreated{}))
 
 		var updated common.Cluster
 		err := db.First(&updated, "id = ?", clusterID).Error
@@ -2900,33 +2900,33 @@ var _ = Describe("UpdateClusterIgnitionConfig", func() {
 
 	It("returns not found with a non-existant cluster", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
-		params := installer.UpdateClusterIgnitionConfigParams{
-			ClusterID:            strfmt.UUID(uuid.New().String()),
-			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
+		params := installer.UpdateDiscoveryIgnitionParams{
+			ClusterID:               strfmt.UUID(uuid.New().String()),
+			DiscoveryIgnitionParams: &models.DiscoveryIgnitionParams{Config: override},
 		}
-		response := bm.UpdateClusterIgnitionConfig(ctx, params)
+		response := bm.UpdateDiscoveryIgnition(ctx, params)
 		verifyApiError(response, http.StatusNotFound)
 	})
 
 	It("returns bad request when provided invalid json", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}}}`
-		params := installer.UpdateClusterIgnitionConfigParams{
-			ClusterID:            clusterID,
-			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
+		params := installer.UpdateDiscoveryIgnitionParams{
+			ClusterID:               clusterID,
+			DiscoveryIgnitionParams: &models.DiscoveryIgnitionParams{Config: override},
 		}
-		response := bm.UpdateClusterIgnitionConfig(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigBadRequest{}))
+		response := bm.UpdateDiscoveryIgnition(ctx, params)
+		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateDiscoveryIgnitionBadRequest{}))
 	})
 
 	It("returns bad request when provided invalid options", func() {
 		// Missing the version
 		override := `{"storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
-		params := installer.UpdateClusterIgnitionConfigParams{
-			ClusterID:            clusterID,
-			IgnitionConfigParams: &models.IgnitionConfigParams{Config: override},
+		params := installer.UpdateDiscoveryIgnitionParams{
+			ClusterID:               clusterID,
+			DiscoveryIgnitionParams: &models.DiscoveryIgnitionParams{Config: override},
 		}
-		response := bm.UpdateClusterIgnitionConfig(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateClusterIgnitionConfigBadRequest{}))
+		response := bm.UpdateDiscoveryIgnition(ctx, params)
+		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateDiscoveryIgnitionBadRequest{}))
 	})
 })
 
