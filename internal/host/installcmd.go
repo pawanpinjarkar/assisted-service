@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/openshift/assisted-service/internal/hostutil"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/jinzhu/gorm"
@@ -67,12 +65,6 @@ func (i *installCmd) GetStep(ctx context.Context, host *models.Host) (*models.St
 		"OPENSHIFT_VERSION":      cluster.OpenshiftVersion,
 		"SKIP_CERT_VERIFICATION": strconv.FormatBool(i.instructionConfig.SkipCertVerification),
 		"AGENT_IMAGE":            i.instructionConfig.InventoryImage,
-	}
-
-	hostname, _ := hostutil.GetCurrentHostName(host)
-	if hostname != "" {
-		cmdArgsTmpl = cmdArgsTmpl + " --host-name {{.HOST_NAME}}"
-		data["HOST_NAME"] = hostname
 	}
 
 	if i.instructionConfig.InstallationTimeout != 0 {

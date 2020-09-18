@@ -85,7 +85,7 @@ var _ = Describe("installcmd", func() {
 		mockValidator.EXPECT().GetHostValidDisks(gomock.Any()).Return(disks, nil).Times(1)
 		stepReply, stepErr = installCmd.GetStep(ctx, &host)
 		postvalidation(false, false, stepReply, stepErr, models.HostRoleMaster)
-		validateInstallCommand(stepReply, models.HostRoleMaster, string(clusterId), string(*host.ID), "")
+		validateInstallCommand(stepReply, models.HostRoleMaster, string(clusterId), string(*host.ID))
 
 		hostFromDb := getHost(*host.ID, clusterId, db)
 		Expect(hostFromDb.InstallerVersion).Should(Equal(DefaultInstructionConfig.InstallerImage))
@@ -99,13 +99,13 @@ var _ = Describe("installcmd", func() {
 		mockValidator.EXPECT().GetHostValidDisks(gomock.Any()).Return(disks, nil).Times(3)
 		stepReply, stepErr = installCmd.GetStep(ctx, &host)
 		postvalidation(false, false, stepReply, stepErr, models.HostRoleMaster)
-		validateInstallCommand(stepReply, models.HostRoleMaster, string(clusterId), string(*host.ID), "")
+		validateInstallCommand(stepReply, models.HostRoleMaster, string(clusterId), string(*host.ID))
 		stepReply, stepErr = installCmd.GetStep(ctx, &host2)
 		postvalidation(false, false, stepReply, stepErr, models.HostRoleMaster)
-		validateInstallCommand(stepReply, models.HostRoleMaster, string(clusterId), string(*host2.ID), "")
+		validateInstallCommand(stepReply, models.HostRoleMaster, string(clusterId), string(*host2.ID))
 		stepReply, stepErr = installCmd.GetStep(ctx, &host3)
 		postvalidation(false, false, stepReply, stepErr, models.HostRoleBootstrap)
-		validateInstallCommand(stepReply, models.HostRoleBootstrap, string(clusterId), string(*host3.ID), "some_hostname")
+		validateInstallCommand(stepReply, models.HostRoleBootstrap, string(clusterId), string(*host3.ID))
 	})
 
 	AfterEach(func() {
@@ -231,40 +231,21 @@ func postvalidation(isstepreplynil bool, issteperrnil bool, expectedstepreply *m
 	}
 }
 
-func validateInstallCommand(reply *models.Step, role models.HostRole, clusterId string, hostId string, hostname string) {
-	if hostname != "" {
-
-		installCommand := "podman run -v /dev:/dev:rw -v /opt:/opt:rw -v /run/systemd/journal/socket:/run/systemd/journal/socket " +
-			"--privileged --pid=host " +
-			"--net=host -v /var/log:/var/log:rw --env PULL_SECRET_TOKEN " +
-			"--name assisted-installer quay.io/ocpmetal/assisted-installer:latest --role %s " +
-			"--cluster-id %s " +
-			"--boot-device /dev/sdb --host-id %s --openshift-version 4.5 " +
-			"--controller-image %s --url %s --insecure=false --agent-image %s --host-name %s --installation-timeout %s " +
-			"|| ( returnCode=$?; podman run --rm --privileged " +
-			"-v /run/systemd/journal/socket:/run/systemd/journal/socket -v /var/log:/var/log " +
-			"--env PULL_SECRET_TOKEN --name logs-sender %s logs_sender " +
-			"-url %s -cluster-id %s -host-id %s --insecure=false -bootstrap=%s; exit $returnCode; )"
-		ExpectWithOffset(1, reply.Args[1]).Should(Equal(fmt.Sprintf(installCommand, role, clusterId,
-			hostId, DefaultInstructionConfig.ControllerImage, DefaultInstructionConfig.ServiceBaseURL, DefaultInstructionConfig.InventoryImage, hostname,
-			strconv.Itoa(int(DefaultInstructionConfig.InstallationTimeout)), DefaultInstructionConfig.InventoryImage, DefaultInstructionConfig.ServiceBaseURL,
-			clusterId, hostId, strconv.FormatBool(role == models.HostRoleBootstrap))))
-	} else {
-		installCommand := "podman run -v /dev:/dev:rw -v /opt:/opt:rw -v /run/systemd/journal/socket:/run/systemd/journal/socket " +
-			"--privileged --pid=host " +
-			"--net=host -v /var/log:/var/log:rw --env PULL_SECRET_TOKEN " +
-			"--name assisted-installer quay.io/ocpmetal/assisted-installer:latest --role %s " +
-			"--cluster-id %s " +
-			"--boot-device /dev/sdb --host-id %s --openshift-version 4.5 " +
-			"--controller-image %s --url %s --insecure=false --agent-image %s --installation-timeout %s " +
-			"|| ( returnCode=$?; podman run --rm --privileged " +
-			"-v /run/systemd/journal/socket:/run/systemd/journal/socket -v /var/log:/var/log " +
-			"--env PULL_SECRET_TOKEN --name logs-sender %s logs_sender " +
-			"-url %s -cluster-id %s -host-id %s --insecure=false -bootstrap=%s; exit $returnCode; )"
-		ExpectWithOffset(1, reply.Args[1]).Should(Equal(fmt.Sprintf(installCommand, role, clusterId,
-			hostId, DefaultInstructionConfig.ControllerImage, DefaultInstructionConfig.ServiceBaseURL, DefaultInstructionConfig.InventoryImage, strconv.Itoa(int(DefaultInstructionConfig.InstallationTimeout)),
-			DefaultInstructionConfig.InventoryImage, DefaultInstructionConfig.ServiceBaseURL, clusterId, hostId,
-			strconv.FormatBool(role == models.HostRoleBootstrap))))
-	}
+func validateInstallCommand(reply *models.Step, role models.HostRole, clusterId string, hostId string) {
+	installCommand := "podman run -v /dev:/dev:rw -v /opt:/opt:rw -v /run/systemd/journal/socket:/run/systemd/journal/socket " +
+		"--privileged --pid=host " +
+		"--net=host -v /var/log:/var/log:rw --env PULL_SECRET_TOKEN " +
+		"--name assisted-installer quay.io/ocpmetal/assisted-installer:latest --role %s " +
+		"--cluster-id %s " +
+		"--boot-device /dev/sdb --host-id %s --openshift-version 4.5 " +
+		"--controller-image %s --url %s --insecure=false --agent-image %s --installation-timeout %s " +
+		"|| ( returnCode=$?; podman run --rm --privileged " +
+		"-v /run/systemd/journal/socket:/run/systemd/journal/socket -v /var/log:/var/log " +
+		"--env PULL_SECRET_TOKEN --name logs-sender %s logs_sender " +
+		"-url %s -cluster-id %s -host-id %s --insecure=false -bootstrap=%s; exit $returnCode; )"
+	ExpectWithOffset(1, reply.Args[1]).Should(Equal(fmt.Sprintf(installCommand, role, clusterId,
+		hostId, DefaultInstructionConfig.ControllerImage, DefaultInstructionConfig.ServiceBaseURL, DefaultInstructionConfig.InventoryImage, strconv.Itoa(int(DefaultInstructionConfig.InstallationTimeout)),
+		DefaultInstructionConfig.InventoryImage, DefaultInstructionConfig.ServiceBaseURL, clusterId, hostId,
+		strconv.FormatBool(role == models.HostRoleBootstrap))))
 	ExpectWithOffset(1, reply.StepType).To(Equal(models.StepTypeInstall))
 }
