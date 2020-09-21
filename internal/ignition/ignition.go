@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/openshift/assisted-service/internal/common"
+	"github.com/openshift/assisted-service/internal/hostutil"
 	"github.com/openshift/assisted-service/internal/installercache"
 	"github.com/openshift/assisted-service/internal/network"
 	"github.com/openshift/assisted-service/models"
@@ -112,6 +113,12 @@ func (g *installerGenerator) Generate(installConfig []byte) error {
 	bootstrapPath := filepath.Join(g.workDir, "bootstrap.ign")
 	err = g.updateBootstrap(bootstrapPath)
 	if err != nil {
+		return err
+	}
+
+	err = g.createHostIgnitions()
+	if err != nil {
+		g.log.Error(err)
 		return err
 	}
 
@@ -390,6 +397,86 @@ func writeIgnitionFile(path string, config *config_31_types.Config) error {
 	err = ioutil.WriteFile(path, updatedBytes, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "error writing file %s", path)
+	}
+
+	return nil
+}
+
+func setHostnameInIgnition(host *models.Host, config *config_31_types.Config) error {
+	hostname, err := hostutil.GetCurrentHostName(host)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get hostname for host %s", host.ID)
+	}
+
+	fileContents := fmt.Sprintf("data:,%s", hostname)
+	mode := 420
+	rootUser := "root"
+	file := config_31_types.File{
+		Node: config_31_types.Node{
+			Path:      "/etc/hostname",
+			Overwrite: nil,
+			Group:     config_31_types.NodeGroup{},
+			User:      config_31_types.NodeUser{Name: &rootUser},
+		},
+		FileEmbedded1: config_31_types.FileEmbedded1{
+			Append: []config_31_types.Resource{},
+			Contents: config_31_types.Resource{
+				Source: &fileContents,
+			},
+			Mode: &mode,
+		},
+	}
+	config.Storage.Files = append(config.Storage.Files, file)
+
+	return nil
+}
+
+func writeHostFiles(hosts []*models.Host, configBytes []byte, workDir string) error {
+	for _, host := range hosts {
+		config, err := parseIgnitionFile(configBytes)
+		if err != nil {
+			return err
+		}
+
+		err = setHostnameInIgnition(host, config)
+		if err != nil {
+			return err
+		}
+
+		fileName := fmt.Sprintf("%s-%s.ign", host.Role, host.ID)
+		err = writeIgnitionFile(filepath.Join(workDir, fileName), config)
+		if err != nil {
+			return errors.Wrapf(err, "failed to write ignition for host %s", host.ID)
+		}
+	}
+
+	return nil
+}
+
+// createHostIgnitions builds an ignition file for each host in the cluster based on the generated <role>.ign file
+func (g *installerGenerator) createHostIgnitions() error {
+	masters, workers := sortHosts(g.cluster.Hosts)
+
+	masterPath := filepath.Join(g.workDir, "master.ign")
+	masterBytes, err := ioutil.ReadFile(masterPath)
+	if err != nil {
+		return errors.Wrapf(err, "error reading file %s", masterPath)
+	}
+
+	err = writeHostFiles(masters, masterBytes, g.workDir)
+	if err != nil {
+		return errors.Wrapf(err, "error writing master host ignition files")
+	}
+
+	workerPath := filepath.Join(g.workDir, "worker.ign")
+	workerBytes, err := ioutil.ReadFile(workerPath)
+	if err != nil {
+		return errors.Wrapf(err, "error reading file %s", workerPath)
+	}
+
+	err = writeHostFiles(workers, workerBytes, g.workDir)
+	if err != nil {
+		return errors.Wrapf(err, "error writing worker host ignition files")
 	}
 
 	return nil
