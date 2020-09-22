@@ -23,6 +23,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/vincent-petithory/dataurl"
+
 	"github.com/openshift/assisted-service/internal/identity"
 
 	ign_3_1 "github.com/coreos/ignition/v2/config/v3_1"
@@ -87,6 +89,7 @@ type Config struct {
 	SkipCertVerification bool              `envconfig:"SKIP_CERT_VERIFICATION" default:"false"`
 	InstallRHCa          bool              `envconfig:"INSTALL_RH_CA" default:"false"`
 	RhQaRegCred          string            `envconfig:"REGISTRY_CREDS" default:""`
+	ServiceIPs           string            `envconfig:"ASSISTED_SERVICE_IPS" default:""`
 }
 
 const agentMessageOfTheDay = `
@@ -172,6 +175,24 @@ const ignitionConfigFormat = `{
 	}{{end}}]
   }
 }`
+
+const onPremIgnitionConfigFormat = `{
+	"ignition": {
+		"version": "3.1.0"
+	  },
+	"storage": {
+		"files": [{
+			"path": "/etc/hosts",
+			"mode": 420,
+			"user": {
+				"name": "root"
+			},
+			"append": [
+				{ "source": "{{.ASSISTED_SERVICE_IPS}}" }
+				]
+		}]
+	  }
+	}`
 
 var clusterFileNames = []string{
 	"kubeconfig",
@@ -268,6 +289,15 @@ func mergeIgnitionConfig(base []byte, overrides []byte) (string, error) {
 	return string(res), nil
 }
 
+func (b *bareMetalInventory) getIPs() string {
+	ipArr := strings.Split(strings.TrimSpace(b.Config.ServiceIPs), " ")
+	ips := ""
+	for _, ip := range ipArr {
+		ips = ips + fmt.Sprintf(ip+" assisted-api.local.openshift.io\n")
+	}
+	return ips
+}
+
 func (b *bareMetalInventory) formatIgnitionFile(cluster *common.Cluster, params installer.GenerateClusterISOParams) (string, error) {
 	creds, err := validations.ParsePullSecret(cluster.PullSecret)
 	if err != nil {
@@ -315,6 +345,23 @@ func (b *bareMetalInventory) formatIgnitionFile(cluster *common.Cluster, params 
 		if err != nil {
 			return "", err
 		}
+	}
+
+	if b.Config.ServiceIPs != "" {
+		ignitionParams["ASSISTED_SERVICE_IPS"] = dataurl.EncodeBytes([]byte(b.getIPs()))
+		tmpl, err := template.New("ignitionConfig").Parse(onPremIgnitionConfigFormat)
+		if err != nil {
+			return "", err
+		}
+		buf := &bytes.Buffer{}
+		if err = tmpl.Execute(buf, ignitionParams); err != nil {
+			return "", err
+		}
+		res, err = mergeIgnitionConfig([]byte(res), buf.Bytes())
+		if err != nil {
+			return "", err
+		}
+		return res, nil
 	}
 
 	return res, nil

@@ -8,12 +8,25 @@ passwd:
       groups: [ sudo ]
 systemd:
     units:
-        - name: assisted-service-pod.service
+        - name: assisted-service-ip-configuration.service
           enabled: true
           contents: |
             [Unit]
             After=network-online.target
           
+            [Service]
+            Type=forking
+            Restart=no
+            ExecStart=/bin/bash /etc/assisted-service/startup_script.sh
+          
+            [Install]
+            WantedBy=multi-user.target
+        - name: assisted-service-pod.service
+          enabled: true
+          contents: |
+            [Unit]
+            After=assisted-service-ip-configuration.service
+            
             [Service]
             Type=forking
             Restart=no
@@ -107,3 +120,15 @@ storage:
           mode: 0644
           contents:
             inline: replace-with-your-urlencoded-pull-secret
+        - path: /etc/assisted-service/startup_script.sh
+          mode: 0644
+          contents:
+            inline: |
+              #!/bin/bash
+              ips=$(hostname -I)
+              read -r -a ipArr <<< "$ips"
+              for ip in "${ipArr[@]}"
+                  do 
+                      printf "\n%s assisted-api.local.openshift.io\n" "$ip" >> /etc/hosts
+                  done
+              printf "\nASSISTED_SERVICE_IPS=%s" "$ips" >> /etc/assisted-service/environment
