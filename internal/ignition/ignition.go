@@ -21,6 +21,8 @@ import (
 	k8sjson "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"
 
+	"github.com/vincent-petithory/dataurl"
+
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/hostutil"
 	"github.com/openshift/assisted-service/internal/installercache"
@@ -50,16 +52,18 @@ type installerGenerator struct {
 	cluster      *common.Cluster
 	releaseImage string
 	installerDir string
+	serviceIPs   string   `envconfig:"ASSISTED_SERVICE_IPS" default:""`
 }
 
 // NewGenerator returns a generator that can generate ignition files
-func NewGenerator(workDir string, installerDir string, cluster *common.Cluster, releaseImage string, log logrus.FieldLogger) Generator {
+func NewGenerator(workDir string, installerDir string, cluster *common.Cluster, releaseImage string, log logrus.FieldLogger, serviceIPs string) Generator {
 	return &installerGenerator{
 		cluster:      cluster,
 		log:          log,
 		releaseImage: releaseImage,
 		workDir:      workDir,
 		installerDir: installerDir,
+		serviceIPs: serviceIPs,
 	}
 }
 
@@ -402,6 +406,37 @@ func writeIgnitionFile(path string, config *config_31_types.Config) error {
 	return nil
 }
 
+func setETCHostsInIgnition(host *models.Host, config *config_31_types.Config, serviceIPs string) error {
+	ips := strings.Split(serviceIPs, " ")
+	content := ""
+	for _, ip := range ips {
+		content = content + fmt.Sprintf(ip+" assisted-api.local.openshift.io\n")
+	}
+	fileContents := dataurl.EncodeBytes([]byte(content))
+	mode := 420
+	rootUser := "root"
+	file := config_31_types.File{
+		Node: config_31_types.Node{
+			Path:      "/etc/hosts",
+			Overwrite: nil,
+			Group:     config_31_types.NodeGroup{},
+			User:      config_31_types.NodeUser{Name: &rootUser},
+		},
+		FileEmbedded1: config_31_types.FileEmbedded1{
+			Append: []config_31_types.Resource{
+				{
+					Source: &fileContents,
+				},
+			},
+			Contents: config_31_types.Resource{},
+			Mode: &mode,
+		},
+	}
+	config.Storage.Files = append(config.Storage.Files, file)
+
+	return nil
+}
+
 func setHostnameInIgnition(host *models.Host, config *config_31_types.Config) error {
 	hostname, err := hostutil.GetCurrentHostName(host)
 	if err != nil {
@@ -431,7 +466,7 @@ func setHostnameInIgnition(host *models.Host, config *config_31_types.Config) er
 	return nil
 }
 
-func writeHostFiles(hosts []*models.Host, configBytes []byte, workDir string) error {
+func writeHostFiles(hosts []*models.Host, configBytes []byte, workDir string, serviceIPs string) error {
 	for _, host := range hosts {
 		config, err := parseIgnitionFile(configBytes)
 		if err != nil {
@@ -441,6 +476,13 @@ func writeHostFiles(hosts []*models.Host, configBytes []byte, workDir string) er
 		err = setHostnameInIgnition(host, config)
 		if err != nil {
 			return err
+		}
+
+		if serviceIPs != "" {
+			err = setETCHostsInIgnition(host, config, serviceIPs)
+			if err != nil {
+				return err
+			}
 		}
 
 		fileName := fmt.Sprintf("%s-%s.ign", host.Role, host.ID)
@@ -463,7 +505,7 @@ func (g *installerGenerator) createHostIgnitions() error {
 		return errors.Wrapf(err, "error reading file %s", masterPath)
 	}
 
-	err = writeHostFiles(masters, masterBytes, g.workDir)
+	err = writeHostFiles(masters, masterBytes, g.workDir, g.serviceIPs)
 	if err != nil {
 		return errors.Wrapf(err, "error writing master host ignition files")
 	}
@@ -474,7 +516,7 @@ func (g *installerGenerator) createHostIgnitions() error {
 		return errors.Wrapf(err, "error reading file %s", workerPath)
 	}
 
-	err = writeHostFiles(workers, workerBytes, g.workDir)
+	err = writeHostFiles(workers, workerBytes, g.workDir, g.serviceIPs)
 	if err != nil {
 		return errors.Wrapf(err, "error writing worker host ignition files")
 	}
