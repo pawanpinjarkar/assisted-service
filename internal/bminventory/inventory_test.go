@@ -6254,7 +6254,7 @@ var _ = Describe("UpdateHostIgnition", func() {
 			HostIgnitionParams: &models.HostIgnitionParams{Config: override},
 		}
 		response := bm.UpdateHostIgnition(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateHostIgnitionBadRequest{}))
+		verifyApiError(response, http.StatusBadRequest)
 	})
 
 	It("returns bad request when provided invalid options", func() {
@@ -6266,7 +6266,7 @@ var _ = Describe("UpdateHostIgnition", func() {
 			HostIgnitionParams: &models.HostIgnitionParams{Config: override},
 		}
 		response := bm.UpdateHostIgnition(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateHostIgnitionBadRequest{}))
+		verifyApiError(response, http.StatusBadRequest)
 	})
 
 	It("returns bad request when provided an old version", func() {
@@ -6278,7 +6278,7 @@ var _ = Describe("UpdateHostIgnition", func() {
 			HostIgnitionParams: &models.HostIgnitionParams{Config: override},
 		}
 		response := bm.UpdateHostIgnition(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateHostIgnitionBadRequest{}))
+		verifyApiError(response, http.StatusBadRequest)
 	})
 })
 
