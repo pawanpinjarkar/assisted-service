@@ -476,7 +476,8 @@ func (r *AgentReconciler) updateHostIgnition(ctx context.Context, c *common.Clus
 		r.Log.Debugf("Nothing to update, ignition config override was already set")
 		return nil
 	}
-	agentHostIgnitionParams := models.HostIgnitionParams{}
+	agentHostIgnitionParams := models.HostIgnitionParams{Config: ""}
+	agentHostIgnitionParams.Config = agent.Spec.IgnitionConfigOverrides
 	params := installer.UpdateHostIgnitionParams{
 		ClusterID:          *c.ID,
 		HostID:             strfmt.UUID(agent.Name),

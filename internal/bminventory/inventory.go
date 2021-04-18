@@ -3248,7 +3248,7 @@ func (b *bareMetalInventory) UpdateHostIgnitionInternal(ctx context.Context, par
 		log.WithError(err).Errorf("Failed to parse host ignition config patch %s", params.HostIgnitionParams)
 		return nil, common.NewApiError(http.StatusBadRequest, err)
 	}
-
+	log.Infof("*************** params.HostIgnitionParams.Config = %s",params.HostIgnitionParams.Config)
 	err = b.db.Model(&common.Host{}).Where(identity.AddUserFilter(ctx, "id = ? and cluster_id = ?"), params.HostID, params.ClusterID).Update("ignition_config_overrides", params.HostIgnitionParams.Config).Error
 	if err != nil {
 		return nil, common.NewApiError(http.StatusInternalServerError, err)
@@ -3261,6 +3261,7 @@ func (b *bareMetalInventory) UpdateHostIgnitionInternal(ctx context.Context, par
 		log.WithError(err).Errorf("failed to get host %s after update", params.HostID)
 		return nil, common.NewApiError(http.StatusInternalServerError, err)
 	}
+	log.Infof("*************** Host = %s",h.Host)
 	return &h.Host, nil
 }
 
