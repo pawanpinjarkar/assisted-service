@@ -17,6 +17,7 @@ import (
 	"github.com/openshift/assisted-service/internal/controller/api/v1beta1"
 	"github.com/openshift/assisted-service/pkg/auth"
 	hivev1 "github.com/openshift/hive/apis/hive/v1"
+	machinev1beta1 "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -75,6 +76,9 @@ func setupKubeClient() {
 
 	if addErr := bmh_v1alpha1.AddToScheme(scheme.Scheme); addErr != nil {
 		logrus.Fatalf("Fail adding kubernetes bmh scheme: %s", addErr)
+	}
+	if addErr := machinev1beta1.AddToScheme(scheme.Scheme); addErr != nil {
+		logrus.Fatalf("Fail adding kubernetes machinev1beta1 scheme: %s", addErr)
 	}
 
 	var err error
