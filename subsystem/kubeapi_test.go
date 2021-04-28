@@ -2,21 +2,16 @@ package subsystem
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
-	"strings"
 	"time"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/jinzhu/gorm"
 	bmhv1alpha1 "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/client"
-	"github.com/openshift/assisted-service/client/installer"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/controller/api/v1beta1"
 	"github.com/openshift/assisted-service/internal/controller/controllers"
@@ -27,8 +22,7 @@ import (
 	hivev1 "github.com/openshift/hive/apis/hive/v1"
 	agentv1 "github.com/openshift/hive/apis/hive/v1/agent"
 
-	// machinev1beta1 "github.com/openshift/machine-api-operator/pkg/apis/machine/v1beta1"
-	"github.com/thoas/go-funk"
+	bmh_v1alpha1 "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +33,38 @@ import (
 )
 
 var BASIC_KUBECONFIG = `apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /home/pawan/.minikube/ca.crt
+    extensions:
+    - extension:
+        last-update: Wed, 14 Apr 2021 20:36:36 EDT
+        provider: minikube.sigs.k8s.io
+        version: v1.19.0
+      name: cluster_info
+    server: https://192.168.39.177:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    extensions:
+    - extension:
+        last-update: Wed, 14 Apr 2021 20:36:36 EDT
+        provider: minikube.sigs.k8s.io
+        version: v1.19.0
+      name: context_info
+    namespace: default
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    client-certificate: /home/pawan/.minikube/profiles/minikube/client.crt
+    client-key: /home/pawan/.minikube/profiles/minikube/client.key`
+var BASIC_KUBECONFIG_OLD = `apiVersion: v1
 clusters: 
   - 
     cluster: 
@@ -413,6 +439,7 @@ func cleanUP(ctx context.Context, client k8sclient.Client) {
 	Expect(client.DeleteAllOf(ctx, &v1beta1.NMStateConfig{}, k8sclient.InNamespace(Options.Namespace))).To(BeNil())
 	Expect(client.DeleteAllOf(ctx, &v1beta1.Agent{}, k8sclient.InNamespace(Options.Namespace))).To(BeNil())
 	Expect(client.DeleteAllOf(ctx, &bmhv1alpha1.BareMetalHost{}, k8sclient.InNamespace(Options.Namespace))).To(BeNil())
+	// Expect(client.DeleteAllOf(ctx, &corev1.Secret{}, k8sclient.InNamespace(Options.Namespace))).To(BeNil())
 }
 
 func setupNewHost(ctx context.Context, hostname string, clusterID strfmt.UUID) *models.Host {
@@ -437,7 +464,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 		clearDB()
 	})
 
-	It("deploy clusterDeployment with agents and wait for ready", func() {
+	/* It("deploy clusterDeployment with agents and wait for ready", func() {
 		secretRef := deployLocalObjectSecretIfNeeded(ctx, kubeClient)
 		spec := getDefaultClusterDeploymentSpec(secretRef)
 		deployClusterDeploymentCRD(ctx, kubeClient, spec)
@@ -1382,7 +1409,7 @@ var _ = Describe("[kube-api]cluster installation", func() {
 		// Create ClusterImageSet
 		deployClusterImageSetCRD(ctx, kubeClient, spec.Provisioning.ImageSetRef)
 		checkClusterCondition(ctx, clusterKubeName, controllers.ClusterSpecSyncedCondition, controllers.SyncedOkReason)
-	})
+	}) */
 
 	It("deploy clusterDeployment with agent role worker and set spoke BMH", func() {
 		secretRef := deployLocalObjectSecretIfNeeded(ctx, kubeClient)
@@ -1414,18 +1441,34 @@ var _ = Describe("[kube-api]cluster installation", func() {
 
 		// Secret contains kubeconfig for the spoke cluster
 		secretName := fmt.Sprintf(adminKubeConfigStringTemplate, spec.ClusterName)
+		Eventually(func() error {
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: Options.Namespace,
+				},
+				Data: map[string][]byte{
+					"kubeconfig": []byte(BASIC_KUBECONFIG),
+				},
+			}
+			return kubeClient.Create(ctx, secret)
+			// return kubeClient.Update(ctx, secret)
+		}, "30s", "10s").Should(BeNil())
+
 		key = types.NamespacedName{
 			Namespace: Options.Namespace,
 			Name:      secretName,
 		}
-		configSecret := getSecret(ctx, kubeClient, key)
+		// configSecret := getSecret(ctx, kubeClient, key)
 
-		kubeconfigData := configSecret.Data["kubeconfig"]
-		fmt.Println("*******kubeconfigData**********")
-		fmt.Println(kubeconfigData)
-		Expect(kubeconfigData).NotTo(BeNil())
+		// kubeconfigData := configSecret.Data["kubeconfig"]
+		// fmt.Println("*******kubeconfigData**********")
+		// fmt.Println(kubeconfigData)
+		// Expect(kubeconfigData).NotTo(BeNil())
 
-		clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeconfigData))
+		// clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeconfigData))
+		// clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfigData)
+		clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 		fmt.Println("*******clientConfig**********")
 		fmt.Println(clientConfig)
 		Expect(err).To(BeNil())
@@ -1441,5 +1484,28 @@ var _ = Describe("[kube-api]cluster installation", func() {
 		fmt.Println(spokeClient)
 		Expect(spokeClient).NotTo(BeNil())
 		Expect(err).To(BeNil())
+
+		By("ensureSpokeMachine is created")
+		Eventually(func() error {
+			key = types.NamespacedName{
+				Namespace: Options.Namespace,
+				Name:      host.ID.String(),
+			}
+			bmh := getBmhCRD(ctx, kubeClient, key)
+			machineName := fmt.Sprintf("%s-%s", spec.ClusterName, bmh.Name)
+			fmt.Printf("machineName = %s", machineName)
+
+			spokeBMH := &bmh_v1alpha1.BareMetalHost{}
+			// spokeClient := bmhr.spokeClient
+			// err = spokeClient.Get(ctx, types.NamespacedName{Name: host.Name, Namespace: testNamespace}, spokeBMH)
+
+			// machine := &machinev1beta1.Machine{
+			// 	ObjectMeta: metav1.ObjectMeta{
+			// 		Name:      machineName,
+			// 		Namespace: bmh.Namespace,
+			// 	},
+			// }
+			return spokeClient.Get(ctx, types.NamespacedName{Name: machineName, Namespace: bmh.Namespace}, spokeBMH)
+		}, "30s", "10s").Should(BeNil())
 	})
 })

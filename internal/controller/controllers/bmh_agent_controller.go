@@ -124,6 +124,7 @@ func (r reconcileError) Dirty() bool {
 // +kubebuilder:rbac:groups=metal3.io,resources=baremetalhosts,verbs=get;list;watch;update;patch
 
 func (r *BMACReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inside internal/controller/controllers/bmh_agent_controller.go Reconcile()")
 	bmh := &bmh_v1alpha1.BareMetalHost{}
 
 	if err := r.Get(ctx, req.NamespacedName, bmh); err != nil {
@@ -479,6 +480,7 @@ func (r *BMACReconciler) reconcileBMH(ctx context.Context, bmh *bmh_v1alpha1.Bar
 // - Create BMH with externallyProvisioned set to true and set the newly created machine as ConsumerRef
 // BMH_HARDWARE_DETAILS_ANNOTATION is needed for auto approval of the CSR.
 func (r *BMACReconciler) reconcileSpokeBMH(ctx context.Context, bmh *bmh_v1alpha1.BareMetalHost, agent *aiv1beta1.Agent) reconcileResult {
+	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inside reconcileSpokeBMH()")
 	// Only worker role is supported for day2 operation
 	if agent.Spec.Role != models.HostRoleWorker || agent.Spec.ClusterDeploymentName == nil {
 		r.Log.Debugf("Skipping spoke BareMetalHost reconcile for  agent %s/%s, role %s and clusterDeployment %s.", agent.Namespace, agent.Name, agent.Spec.Role, agent.Spec.ClusterDeploymentName)
