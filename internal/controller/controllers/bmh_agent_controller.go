@@ -124,7 +124,6 @@ func (r reconcileError) Dirty() bool {
 // +kubebuilder:rbac:groups=metal3.io,resources=baremetalhosts,verbs=get;list;watch;update;patch
 
 func (r *BMACReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inside internal/controller/controllers/bmh_agent_controller.go Reconcile()")
 	bmh := &bmh_v1alpha1.BareMetalHost{}
 
 	if err := r.Get(ctx, req.NamespacedName, bmh); err != nil {
@@ -482,6 +481,7 @@ func (r *BMACReconciler) reconcileBMH(ctx context.Context, bmh *bmh_v1alpha1.Bar
 func (r *BMACReconciler) reconcileSpokeBMH(ctx context.Context, bmh *bmh_v1alpha1.BareMetalHost, agent *aiv1beta1.Agent) reconcileResult {
 	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Inside reconcileSpokeBMH()")
 	// Only worker role is supported for day2 operation
+	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> agent role is %s", agent.Spec.Role)
 	if agent.Spec.Role != models.HostRoleWorker || agent.Spec.ClusterDeploymentName == nil {
 		r.Log.Debugf("Skipping spoke BareMetalHost reconcile for  agent %s/%s, role %s and clusterDeployment %s.", agent.Namespace, agent.Name, agent.Spec.Role, agent.Spec.ClusterDeploymentName)
 		return reconcileComplete{}
@@ -498,6 +498,7 @@ func (r *BMACReconciler) reconcileSpokeBMH(ctx context.Context, bmh *bmh_v1alpha
 	}
 
 	// If the cluster is not installed yet, we can't get kubeconfig for the cluster yet.
+	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> clusterDeployment.Spec.Installed is %s", clusterDeployment.Spec.Installed)
 	if !clusterDeployment.Spec.Installed {
 		r.Log.Infof("ClusterDeployment %s/%s for agent %s/%s is not installed yet", clusterDeployment.Namespace, clusterDeployment.Name, agent.Namespace, agent.Name)
 		// TODO: If cluster is not Installed, wait until a reconcile is trigged by a watch event instead
@@ -507,6 +508,7 @@ func (r *BMACReconciler) reconcileSpokeBMH(ctx context.Context, bmh *bmh_v1alpha
 	// Secret contains kubeconfig for the spoke cluster
 	secret := &corev1.Secret{}
 	name := fmt.Sprintf(adminKubeConfigStringTemplate, clusterDeployment.Name)
+	r.Log.Infof(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Trying to get secret with name  %s", name)
 	err := r.Get(ctx, types.NamespacedName{Namespace: clusterDeployment.Namespace, Name: name}, secret)
 	if err != nil && errors.IsNotFound(err) {
 		r.Log.WithError(err).Errorf("failed to get secret resource %s/%s", clusterDeployment.Namespace, name)
@@ -524,7 +526,7 @@ func (r *BMACReconciler) reconcileSpokeBMH(ctx context.Context, bmh *bmh_v1alpha
 
 	machine, err := r.ensureSpokeMachine(ctx, spokeClient, bmh, clusterDeployment)
 	if err != nil {
-		r.Log.WithError(err).Errorf("failed to create or update spoke Machine")
+		r.Log.WithError(err).Errorf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> failed to create or update spoke Machine")
 		return reconcileError{err}
 	}
 

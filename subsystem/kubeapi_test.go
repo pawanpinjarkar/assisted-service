@@ -22,7 +22,6 @@ import (
 	hivev1 "github.com/openshift/hive/apis/hive/v1"
 	agentv1 "github.com/openshift/hive/apis/hive/v1/agent"
 
-	bmh_v1alpha1 "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,18 +37,18 @@ clusters:
     certificate-authority: /home/pawan/.minikube/ca.crt
     extensions:
     - extension:
-        last-update: Wed, 14 Apr 2021 20:36:36 EDT
+        last-update: Wed, 28 Apr 2021 23:03:12 EDT
         provider: minikube.sigs.k8s.io
         version: v1.19.0
       name: cluster_info
-    server: https://192.168.39.177:8443
+    server: https://192.168.39.88:8443
   name: minikube
 contexts:
 - context:
     cluster: minikube
     extensions:
     - extension:
-        last-update: Wed, 14 Apr 2021 20:36:36 EDT
+        last-update: Wed, 28 Apr 2021 23:03:12 EDT
         provider: minikube.sigs.k8s.io
         version: v1.19.0
       name: context_info
@@ -1430,17 +1429,19 @@ var _ = Describe("[kube-api]cluster installation", func() {
 		}
 
 		agent := getAgentCRD(ctx, kubeClient, key)
-		bmhSpec := bmhv1alpha1.BareMetalHostSpec{BootMACAddress: getAgentMac(agent)}
-		deployBMHCRD(ctx, kubeClient, host.ID.String(), &bmhSpec)
-
 		Eventually(func() error {
 			// Only worker role is supported for day2 operation
 			agent.Spec.Role = "worker"
 			return kubeClient.Update(ctx, agent)
 		}, "30s", "10s").Should(BeNil())
 
+		bmhSpec := bmhv1alpha1.BareMetalHostSpec{BootMACAddress: getAgentMac(agent)}
+		fmt.Printf("\n************ Deploying BMH with ID/Name %s \n", host.ID.String())
+		deployBMHCRD(ctx, kubeClient, host.ID.String(), &bmhSpec)
+
 		// Secret contains kubeconfig for the spoke cluster
 		secretName := fmt.Sprintf(adminKubeConfigStringTemplate, spec.ClusterName)
+		fmt.Printf("\n***************** Trying to create a secret %s/%s", Options.Namespace, secretName)
 		Eventually(func() error {
 			secret := &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
@@ -1452,23 +1453,22 @@ var _ = Describe("[kube-api]cluster installation", func() {
 				},
 			}
 			return kubeClient.Create(ctx, secret)
-			// return kubeClient.Update(ctx, secret)
 		}, "30s", "10s").Should(BeNil())
 
 		key = types.NamespacedName{
 			Namespace: Options.Namespace,
 			Name:      secretName,
 		}
-		// configSecret := getSecret(ctx, kubeClient, key)
+		configSecret := getSecret(ctx, kubeClient, key)
 
-		// kubeconfigData := configSecret.Data["kubeconfig"]
-		// fmt.Println("*******kubeconfigData**********")
-		// fmt.Println(kubeconfigData)
-		// Expect(kubeconfigData).NotTo(BeNil())
+		kubeconfigData := configSecret.Data["kubeconfig"]
+		// kubeconfigData := []byte(BASIC_KUBECONFIG)
+		fmt.Println("*******kubeconfigData**********")
+		fmt.Println(string(kubeconfigData))
+		Expect(kubeconfigData).NotTo(BeNil())
 
-		// clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeconfigData))
-		// clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfigData)
-		clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
+		clientConfig, err := clientcmd.NewClientConfigFromBytes(kubeconfigData)
+		// clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(BASIC_KUBECONFIG))
 		fmt.Println("*******clientConfig**********")
 		fmt.Println(clientConfig)
 		Expect(err).To(BeNil())
@@ -1492,10 +1492,11 @@ var _ = Describe("[kube-api]cluster installation", func() {
 				Name:      host.ID.String(),
 			}
 			bmh := getBmhCRD(ctx, kubeClient, key)
-			machineName := fmt.Sprintf("%s-%s", spec.ClusterName, bmh.Name)
+			// machineName := fmt.Sprintf("%s-%s", spec.ClusterName, bmh.Name)
+			machineName := bmh.Name
 			fmt.Printf("machineName = %s", machineName)
 
-			spokeBMH := &bmh_v1alpha1.BareMetalHost{}
+			spokeBMH := &bmhv1alpha1.BareMetalHost{}
 			// spokeClient := bmhr.spokeClient
 			// err = spokeClient.Get(ctx, types.NamespacedName{Name: host.Name, Namespace: testNamespace}, spokeBMH)
 
@@ -1505,7 +1506,22 @@ var _ = Describe("[kube-api]cluster installation", func() {
 			// 		Namespace: bmh.Namespace,
 			// 	},
 			// }
-			return spokeClient.Get(ctx, types.NamespacedName{Name: machineName, Namespace: bmh.Namespace}, spokeBMH)
+			spokeClient.Get(ctx, types.NamespacedName{Name: machineName, Namespace: Options.Namespace}, spokeBMH)
+			fmt.Println("\n*** spokeBMH is")
+			fmt.Println(spokeBMH)
+			return spokeClient.Get(ctx, types.NamespacedName{Name: machineName, Namespace: Options.Namespace}, spokeBMH)
+			// return spokeClient.Get(ctx, types.NamespacedName{Name: machineName, Namespace: bmh.Namespace}, spokeBMH)
+		}, "30s", "10s").ShouldNot(BeNil())
+
+		By("Clean spoke cluster secret")
+		Eventually(func() error {
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: Options.Namespace,
+				},
+			}
+			return kubeClient.Delete(ctx, secret)
 		}, "30s", "10s").Should(BeNil())
 	})
 })
