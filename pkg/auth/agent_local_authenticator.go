@@ -10,7 +10,6 @@ import (
 	"github.com/go-openapi/runtime/security"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/openshift/assisted-service/internal/common"
-	"github.com/openshift/assisted-service/internal/gencrypto"
 	"github.com/openshift/assisted-service/pkg/ocm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -77,14 +76,6 @@ func (a *AgentLocalAuthenticator) AuthAgentAuth(token string) (interface{}, erro
 		a.log.Error(err)
 		return nil, common.NewInfraError(http.StatusUnauthorized, err)
 	}
-
-	infraEnvID, infraEnvOk := claims[string(gencrypto.InfraEnvKey)].(string)
-	if !infraEnvOk {
-		err = errors.Errorf("claims are incorrectly formatted")
-		a.log.Error(err)
-		return nil, common.NewInfraError(http.StatusUnauthorized, err)
-	}
-	a.log.Infof("Authenticating infraEnv %s JWT", infraEnvID)
 
 	exp, found := claims["exp"].(float64)
 	if !found {
