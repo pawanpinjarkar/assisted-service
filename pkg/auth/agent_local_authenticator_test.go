@@ -96,6 +96,11 @@ var _ = Describe("AuthAgentAuth", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
+	It("Works with Watcher auth", func() {
+		_, err := a.AuthWatcherAuth(token)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
 	It("Validates an unexpired token correctly", func() {
 		t, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 			return nil, nil
